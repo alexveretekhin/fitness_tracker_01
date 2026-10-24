@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitness Tracker: витрина дизайна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Те же токены, что в app/frontend/src/styles/theme.css, только как обычные CSS-переменные */
+  :root {
+    --canvas: #0d0d0d; --bg: #121212; --surface: #1a1a1a; --surface-strong: #242424;
+    --border: #898989; --text: #fff; --text-muted: #898989; --text-faint: #3a3a3a;
+    --accent: #ff3300; --accent-soft: #ff4000; --weekend: #e03a3a;
+    --flame-on: #ff000b; --flame-off: #333; --play: #898989;
+    --radius-row: .5rem; --radius-card: .75rem;
+    --ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
+    --font: "Source Code Pro", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--font); }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1 { color: var(--accent-soft); font-weight: 500; letter-spacing: .02em; }
+  h2 { margin-top: 48px; font-weight: 500; border-bottom: 1px solid var(--surface-strong); padding-bottom: 8px; }
+  p.note { color: var(--text-muted); max-width: 70ch; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  svg { display: block; }
+
+  /* Палитра */
+  .swatch { width: 150px; }
+  .swatch div { height: 64px; border-radius: var(--radius-row); border: 1px solid #2a2a2a; }
+  .swatch code { display: block; font-size: 12px; margin-top: 6px; color: var(--text-muted); }
+
+  /* Иконки */
+  .icon { width: 48px; height: 48px; color: var(--accent); }
+
+  /* Экран телефона */
+  .phone { width: 300px; height: 620px; background: var(--bg); border-radius: 28px; padding: 14px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+  .panel { border: 1px solid var(--border); border-radius: var(--radius-card); padding: 6px; }
+  .grow { flex: 1; overflow: auto; }
+
+  /* Лента недели */
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
+  .day { padding: 4px 0; border-radius: 6px; cursor: pointer; }
+  .day.active { background: var(--surface-strong); }
+  .day small { display: block; font-size: 9px; color: var(--text); }
+  .day small.we { color: var(--weekend); }
+  .day b { display: block; font-weight: 400; font-size: 13px; }
+  .day .flame { width: 14px; height: 16px; margin: 3px auto 0; color: var(--flame-off); transition: color .3s, transform .4s var(--ease-bounce); }
+  .day .flame.on { color: var(--flame-on); }
+  .day .flame.on.pop { transform: scale(1.5); }
+
+  /* Строки */
+  .search { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-row); background: var(--surface); color: var(--text-faint); margin-bottom: 6px; }
+  .search svg { width: 18px; height: 18px; }
+  .item { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 0 6px 0 12px; margin-bottom: 6px; border: 1px solid var(--border); border-radius: var(--radius-row); background: var(--surface); cursor: pointer; user-select: none; transition: transform .15s var(--ease-bounce), background .15s; }
+  .item:active { transform: scale(.97); background: var(--surface-strong); }
+  .item.upper { text-transform: uppercase; }
+  .item .play { width: 26px; height: 26px; color: var(--play); flex: none; }
+  .empty { height: 100%; display: grid; place-items: center; color: var(--text-faint); }
+
+  /* Нижнее меню */
+  .nav { display: flex; justify-content: space-around; padding: 6px 0 2px; }
+  .nav button { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--accent); color: var(--bg); display: grid; place-items: center; cursor: pointer; position: relative; transition: transform .2s var(--ease-bounce); }
+  .nav button:active { transform: scale(.9); }
+  .nav button svg { width: 26px; height: 26px; }
+  .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 700; display: grid; place-items: center; transform: scale(0); transition: transform .3s var(--ease-bounce); }
+  .badge.show { transform: scale(1); }
+  .badge.bump { animation: bump .35s var(--ease-bounce); }
+  @keyframes bump { 50% { transform: scale(1.4); } }
+
+  /* Карточка подходов */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 16px; transform: translateY(105%); transition: transform .35s var(--ease-bounce); }
+  .sheet.open { transform: translateY(0); }
+  .sheet h3 { margin: 0 0 12px; font-weight: 500; }
+  .set { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
+  .set input { width: 100%; height: 38px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-row); font: inherit; text-align: center; }
+  .btn { height: 42px; width: 100%; border: 0; border-radius: var(--radius-row); background: var(--accent); color: var(--bg); font: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
+
+  /* Аватары */
+  .avatar { width: 120px; height: 150px; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; display: grid; place-items: end center; cursor: pointer; transition: transform .2s var(--ease-bounce), border-color .2s; }
+  .avatar:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .avatar img { height: 140px; }
+
+  /* Полёт упражнения на главную */
+  .flyer { position: fixed; z-index: 10; pointer-events: none; padding: 6px 12px; border-radius: var(--radius-row); background: var(--accent); color: var(--bg); font-weight: 700; font-size: 13px; transition: transform .6s var(--ease-bounce), opacity .6s ease-in; }
+
+  .splash { width: 160px; height: 284px; border-radius: 16px; overflow: hidden; position: relative; }
+  .splash img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .splash img.red { animation: fill 2.4s ease-in-out infinite alternate; }
+  @keyframes fill { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+  video { width: 300px; border-radius: var(--radius-card); border: 1px solid var(--border); }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fitness Tracker · витрина</h1>
+  <p class="note">Это не приложение, а живой каталог: цвета, шрифт, иконки и основные элементы из макета Figma в одном месте. Справа внизу можно потыкать: кликни упражнения во втором телефоне, они «улетят» на главную. Потом нажми на упражнение в первом телефоне, чтобы открыть карточку подходов.</p>
+
+  <h2>Цвета</h2>
+  <div class="row" id="swatches"></div>
+
+  <h2>Шрифт</h2>
+  <p style="font-size:28px;margin:8px 0">Fitness Tracker</p>
+  <p style="font-size:16px;margin:8px 0">Barbell bench · Dumbbell pullover · Push-ups</p>
+  <p style="font-size:12px;margin:8px 0;color:var(--text-muted)">SAT SUN MON TUE WED THU FRI · 0123456789</p>
+
+  <h2>Иконки</h2>
+  <div class="row">
+    <div class="icon">{{flame}}</div><div class="icon" style="color:var(--flame-off)">{{flame}}</div>
+    <div class="icon">{{history}}</div><div class="icon">{{folder}}</div><div class="icon">{{plus}}</div>
+    <div class="icon">{{settings}}</div><div class="icon" style="color:var(--play)">{{play}}</div><div class="icon" style="color:var(--text-muted)">{{search}}</div>
+  </div>
+
+  <h2>Экраны и поведение</h2>
+  <div class="row">
+    <div class="phone" id="home">
+      <div class="panel"><div class="week" id="week"></div></div>
+      <div class="panel grow" id="todayList"><div class="empty">Add Exercises</div></div>
+      <div class="nav">
+        <button title="История">{{history}}</button>
+        <button title="Добавить" id="homeBtn">{{plus}}<span class="badge" id="badge">0</span></button>
+        <button title="Настройки">{{settings}}</button>
+      </div>
+      <div class="sheet" id="sheet">
+        <h3 id="sheetTitle">Exercise</h3>
+        <div class="set"><span>Вес, кг</span><span>Подходы</span><span>Повторы</span></div>
+        <div class="set"><input value="60" inputmode="decimal"><input value="3" inputmode="numeric"><input value="10" inputmode="numeric"></div>
+        <button class="btn" id="saveSet">Сохранить</button>
+      </div>
+    </div>
+
+    <div class="phone">
+      <div class="panel grow">
+        <div class="search">{{search}}SEARCH</div>
+        <div id="exercises"></div>
+      </div>
+      <div class="nav"><button>{{history}}</button><button>{{plus}}</button><button>{{settings}}</button></div>
+    </div>
+
+    <div class="phone">
+      <div class="panel grow">
+        <div class="search">{{search}}SEARCH</div>
+        <div id="groups"></div>
+      </div>
+      <div class="nav"><button>{{history}}</button><button>{{plus}}</button><button>{{settings}}</button></div>
+    </div>
+  </div>
+
+  <h2>Выбор аватара</h2>
+  <div class="row">
+    <div class="avatar"><img src="../../app/frontend/public/images/avatars/male.webp" alt="Мужской аватар"></div>
+    <div class="avatar"><img src="../../app/frontend/public/images/avatars/female.webp" alt="Женский аватар"></div>
+  </div>
+
+  <h2>Заставка и демо упражнения</h2>
+  <div class="row">
+    <div class="splash"><img src="../../app/frontend/public/images/splash/skull-white.webp" alt=""><img class="red" src="../../app/frontend/public/images/splash/skull-red.webp" alt=""></div>
+    <video src="../../app/frontend/public/animations/exercises/push-ups.mp4" autoplay muted loop playsinline></video>
+  </div>
+  <p class="note">Демо отжиманий: исходный GIF весил 1,7 МБ, после перевода в MP4 он весит 72 КБ, в анимированный WebP 450 КБ. Поэтому в приложении будем показывать MP4/WebM, а GIF держать только как исходник.</p>
+</main>
+
+<script>
+  const FLAME = `{{flame}}`;
+  const PLAY = `{{play}}`;
+  const colors = [
+    ["canvas", "#0d0d0d"], ["bg", "#121212"], ["surface", "#1a1a1a"], ["surface-strong", "#242424"],
+    ["border", "#898989"], ["text", "#ffffff"], ["text-faint", "#3a3a3a"], ["accent", "#ff3300"],
+    ["accent-soft", "#ff4000"], ["weekend", "#e03a3a"], ["flame-on", "#ff000b"], ["flame-off", "#333333"],
+  ];
+  document.getElementById("swatches").innerHTML = colors
+    .map(([n, c]) => `<div class="swatch"><div style="background:${c}"></div><code>--color-${n}<br>${c}</code></div>`).join("");
+
+  const days = ["SAT", "SUN", "MON", "TUE", "WED", "THU", "FRI"];
+  const done = [true, false, true, false, false, false, false];
+  document.getElementById("week").innerHTML = days.map((d, i) => `
+    <div class="day ${i === 3 ? "active" : ""}">
+      <small class="${i < 2 ? "we" : ""}">${d}</small><b>${12 + i}</b>
+      <div class="flame ${done[i] ? "on" : ""}">${FLAME}</div>
+    </div>`).join("");
+
+  const groups = ["Neck", "Shoulders", "Chest", "Back", "Abs", "Biceps", "Triceps", "Legs", "Calves"];
+  document.getElementById("groups").innerHTML = groups.map(g => `<div class="item upper">${g}</div>`).join("");
+
+  const exercises = ["Barbell bench", "Dumbbell bench", "Chest fly", "Cable fly", "Pec deck fly", "Dumbbell pullover", "Push-ups"];
+  document.getElementById("exercises").innerHTML = exercises
+    .map(e => `<div class="item" data-name="${e}"><span>${e}</span><span class="play">${PLAY}</span></div>`).join("");
+
+  const picked = [];
+  const badge = document.getElementById("badge");
+  const homeBtn = document.getElementById("homeBtn");
+  const list = document.getElementById("todayList");
+
+  function renderToday() {
+    list.innerHTML = picked.length
+      ? picked.map(e => `<div class="item" data-open="${e}"><span>${e}</span><span class="play">${PLAY}</span></div>`).join("")
+      : `<div class="empty">Add Exercises</div>`;
+  }
+
+  // Клик по упражнению: копия «улетает» к кнопке на главной, экран не меняется
+  document.getElementById("exercises").addEventListener("click", (ev) => {
+    const row = ev.target.closest(".item");
+    if (!row || ev.target.closest(".play")) return;
+    const from = row.getBoundingClientRect();
+    const to = homeBtn.getBoundingClientRect();
+    const flyer = document.createElement("div");
+    flyer.className = "flyer";
+    flyer.textContent = row.dataset.name;
+    flyer.style.left = from.left + "px";
+    flyer.style.top = from.top + "px";
+    document.body.appendChild(flyer);
+    requestAnimationFrame(() => {
+      flyer.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(.2)`;
+      flyer.style.opacity = "0";
+    });
+    setTimeout(() => {
+      flyer.remove();
+      picked.push(row.dataset.name);
+      badge.textContent = picked.length;
+      badge.classList.add("show");
+      badge.classList.remove("bump"); void badge.offsetWidth; badge.classList.add("bump");
+      renderToday();
+    }, 600);
+  });
+
+  // Клик по упражнению на главной: открывается карточка с весом, подходами и повторами
+  const sheet = document.getElementById("sheet");
+  list.addEventListener("click", (ev) => {
+    const row = ev.target.closest("[data-open]");
+    if (!row) return;
+    document.getElementById("sheetTitle").textContent = row.dataset.open;
+    sheet.classList.add("open");
+  });
+  document.getElementById("saveSet").addEventListener("click", () => {
+    sheet.classList.remove("open");
+    const today = document.querySelectorAll(".day")[3].querySelector(".flame");
+    today.classList.add("on", "pop");
+    setTimeout(() => today.classList.remove("pop"), 400);
+  });
+</script>
+</body>
+</html>

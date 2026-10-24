@@ -40,3 +40,10 @@ pnpm install   # поставить зависимости
 pnpm dev       # запустить в режиме разработки
 pnpm build     # собрать для продакшена
 ```
+
+## Дизайн
+
+```powershell
+start docs\design\showcase.html          # открыть витрину
+python docs\design\build_showcase.py     # пересобрать витрину после правок
+```
