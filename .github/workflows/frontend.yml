@@ -1,0 +1,29 @@
+name: frontend
+
+# Запускается на каждый Pull Request и push в main, если менялся фронтенд
+on:
+  pull_request:
+    paths: ["app/frontend/**", ".github/workflows/frontend.yml"]
+  push:
+    branches: [main]
+    paths: ["app/frontend/**"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: app/frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build

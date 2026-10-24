@@ -48,3 +48,7 @@ tests/         # тесты (uv run pytest)
 | PUT | `/api/days/{date}/exercises/{id}` | Записать вес, подходы, повторы |
 | DELETE | `/api/days/{date}/exercises/{id}` | Убрать упражнение из дня |
 | GET/PUT | `/api/me` | Профиль и аватар |
+
+## Схема API для фронтенда
+
+После изменения API обнови клиент фронтенда: в `app\frontend` выполни `pnpm api`. Команда вызывает `uv run python -m app.export_openapi` и перегенерирует `src/api/generated`.

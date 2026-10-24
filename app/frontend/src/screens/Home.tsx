@@ -1,14 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useExerciseCatalog } from "../api";
 import { SetSheet } from "../components/SetSheet";
 import { EmptyState, ListRow, Panel } from "../components/ui";
 import { WeekStrip } from "../components/WeekStrip";
-import { exerciseById } from "../data/exercises";
 import { useAppStore } from "../store/useAppStore";
 
 // Главная: лента недели с огоньками и упражнения выбранного дня
 export function Home() {
   const navigate = useNavigate();
+  const exerciseById = useExerciseCatalog().data ?? {};
   const selectedDay = useAppStore((s) => s.selectedDay);
   const entries = useAppStore((s) => s.days[s.selectedDay]) ?? [];
   const saveLog = useAppStore((s) => s.saveLog);

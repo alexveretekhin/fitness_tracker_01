@@ -68,3 +68,18 @@ export function EmptyState({ children, onClick }: { children: ReactNode; onClick
     </button>
   );
 }
+
+// Пока ответ от сервера не пришёл или пришла ошибка, показываем это вместо списка
+export function QueryState({ isPending, isError }: { isPending: boolean; isError: boolean }) {
+  if (isError) {
+    return (
+      <p className="px-3 py-6 text-center text-sm text-weekend">
+        Нет связи с сервером. Запущен ли бэкенд (uv run fastapi dev)?
+      </p>
+    );
+  }
+  if (isPending) {
+    return <p className="px-3 py-6 text-center text-sm text-text-faint">загрузка…</p>;
+  }
+  return null;
+}

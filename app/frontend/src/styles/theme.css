@@ -64,7 +64,9 @@
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: должно перебить стили любых компонентов */
     animation-duration: 1ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: то же самое */
     transition-duration: 1ms !important;
   }
 }
