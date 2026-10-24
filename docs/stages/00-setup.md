@@ -6,7 +6,7 @@
 
 ## Что сделали
 
-- Поставили инструменты: Git (уже был), uv, Node.js 22 LTS, pnpm.
+- Поставили инструменты: uv 0.13.5 и pnpm 12.15.0. Git 2.53.0 и Node.js 24.14.1 LTS уже стояли. pnpm поставлен через `npm install -g pnpm`, потому что corepack без прав администратора не может писать в `C:\Program Files\nodejs`.
 - Создали папки: `app/backend` (Python), `app/frontend` (TypeScript), `art` (готовые анимации и модели), `docs` (документация). Пустые папки git не хранит, поэтому в каждой лежит `README.md`.
 - Расширили [.gitignore](../../.gitignore): добавили `node_modules`, сборки фронта, локальные базы, автосохранения Blender `*.blend1` и тяжёлые исходники в `art/`.
 - Добавили [.gitattributes](../../.gitattributes): единые переводы строк, картинки и видео помечены как бинарные.
@@ -32,7 +32,7 @@
 ```powershell
 git --version
 uv --version
-node --version   # должно начинаться с v22
+node --version   # v24.x (LTS)
 pnpm --version
 ```
 
