@@ -23,3 +23,30 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+.pnpm-store/
+
+# Python tooling
+.ruff_cache/
+.mypy_cache/
+
+# Local databases
+*.sqlite3
+*.db
+
+# Blender autosaves and heavy art sources (keep sources outside git or in Git LFS)
+*.blend1
+*.blend2
+art/**/*.blend
+art/**/*.fbx
+art/**/*.FBX
+art/**/*.ztl
+art/**/*.obj
+
+# Logs
+*.log
