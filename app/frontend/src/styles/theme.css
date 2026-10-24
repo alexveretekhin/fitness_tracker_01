@@ -8,25 +8,25 @@
 
 @theme {
   /* Фоны: от самого тёмного к светлому */
-  --color-canvas: #0d0d0d;      /* фон вокруг экрана на десктопе */
-  --color-bg: #121212;          /* фон экрана */
-  --color-surface: #1a1a1a;     /* карточки, строки списка, поле поиска */
+  --color-canvas: #0d0d0d; /* фон вокруг экрана на десктопе */
+  --color-bg: #121212; /* фон экрана */
+  --color-surface: #1a1a1a; /* карточки, строки списка, поле поиска */
   --color-surface-strong: #242424; /* нажатая строка, активный день в ленте */
 
   /* Линии и текст */
-  --color-border: #898989;      /* тонкая обводка карточек и строк */
-  --color-text: #ffffff;        /* основной текст */
-  --color-text-muted: #898989;  /* подписи дней недели, вторичный текст */
-  --color-text-faint: #3a3a3a;  /* плейсхолдеры: SEARCH, Add Exercises, HISTORY */
+  --color-border: #898989; /* тонкая обводка карточек и строк */
+  --color-text: #ffffff; /* основной текст */
+  --color-text-muted: #898989; /* подписи дней недели, вторичный текст */
+  --color-text-faint: #3a3a3a; /* плейсхолдеры: SEARCH, Add Exercises, HISTORY */
 
   /* Акценты */
-  --color-accent: #ff3300;      /* кнопки нижнего меню, заголовок */
+  --color-accent: #ff3300; /* кнопки нижнего меню, заголовок */
   --color-accent-soft: #ff4000; /* заголовок Fitness Tracker */
-  --color-weekend: #e03a3a;     /* SAT / SUN в ленте недели */
+  --color-weekend: #e03a3a; /* SAT / SUN в ленте недели */
 
   /* Огонёк стрика */
-  --color-flame-on: #ff000b;    /* в этот день была тренировка */
-  --color-flame-off: #333333;   /* тренировки не было */
+  --color-flame-on: #ff000b; /* в этот день была тренировка */
+  --color-flame-off: #333333; /* тренировки не было */
 
   /* Иконка Play на строке упражнения */
   --color-play: #898989;
@@ -36,11 +36,11 @@
   --font-sans: var(--font-mono); /* весь интерфейс моноширинный */
 
   /* Скругления */
-  --radius-row: 0.5rem;   /* строки списка и поле поиска */
+  --radius-row: 0.5rem; /* строки списка и поле поиска */
   --radius-card: 0.75rem; /* большие карточки и рамка экрана */
 
   /* Размеры */
-  --spacing-nav: 4.5rem;  /* высота нижнего меню */
+  --spacing-nav: 4.5rem; /* высота нижнего меню */
   --spacing-tap: 2.75rem; /* минимальная зона нажатия пальцем (44px) */
 
   /* Анимации */
@@ -49,13 +49,21 @@
 }
 
 @keyframes fly-to-home {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--fly-x, 0), var(--fly-y, 300px)) scale(0.2); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--fly-x, 0), var(--fly-y, 300px)) scale(0.2);
+    opacity: 0;
+  }
 }
 
 /* Если в системе включено «уменьшить движение», анимации почти выключаются */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
