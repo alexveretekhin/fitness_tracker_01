@@ -6,11 +6,23 @@
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 
 from app.api import catalog, days, me
 from app.config import settings
 
-app = FastAPI(title="Fitness Tracker API", version="0.1.0")
+
+def operation_id(route: APIRoute) -> str:
+    """Короткие имена операций (get_day вместо get_day_api_days__date__get).
+
+    Из них фронтенд генерирует функции клиента, поэтому имена должны быть читаемыми.
+    """
+    return route.name
+
+
+app = FastAPI(
+    title="Fitness Tracker API", version="0.1.0", generate_unique_id_function=operation_id
+)
 
 # CORS: разрешаем фронтенду с другого порта (Vite, 5173) обращаться к API
 app.add_middleware(

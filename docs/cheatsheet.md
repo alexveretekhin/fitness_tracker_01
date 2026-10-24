@@ -36,13 +36,17 @@ uv run alembic revision --autogenerate -m "что поменял"  # мигра�
 uv add <пакет>                             # добавить библиотеку
 ```
 
-## Фронтенд (появится на этапе 3)
+## Фронтенд
 
 ```powershell
 cd app\frontend
 pnpm install   # поставить зависимости
-pnpm dev       # запустить в режиме разработки
-pnpm build     # собрать для продакшена
+pnpm dev       # запустить, адрес http://localhost:5173 (бэкенд должен работать в другом окне)
+pnpm lint      # проверка кода Biome
+pnpm format    # исправить форматирование
+pnpm build     # проверка типов и сборка для продакшена
+pnpm api       # после изменений API на бэкенде: обновить клиент в src/api/generated
+pnpm add <пакет>  # добавить библиотеку
 ```
 
 ## Дизайн
