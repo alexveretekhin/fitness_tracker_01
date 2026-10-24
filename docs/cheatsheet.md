@@ -22,14 +22,18 @@ node --version
 pnpm --version
 ```
 
-## Бэкенд (появится на этапе 2)
+## Бэкенд
 
 ```powershell
 cd app\backend
-uv sync                          # поставить зависимости, создать .venv
-uv run fastapi dev app/main.py   # запустить сервер
-uv run pytest                    # тесты
-uv run ruff check .              # проверка кода
+uv sync                                    # поставить зависимости, создать .venv
+uv run alembic upgrade head                # применить миграции к базе
+uv run python -m app.seed                  # залить каталог упражнений
+uv run fastapi dev                         # запустить сервер, docs: http://127.0.0.1:8000/docs
+uv run pytest                              # тесты
+uv run ruff check . ; uv run ruff format . # проверка и форматирование кода
+uv run alembic revision --autogenerate -m "что поменял"  # миграция после правки models.py
+uv add <пакет>                             # добавить библиотеку
 ```
 
 ## Фронтенд (появится на этапе 3)

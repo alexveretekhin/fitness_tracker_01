@@ -1,0 +1,31 @@
+[project]
+name = "fitness-tracker-backend"
+version = "0.1.0"
+description = "Fitness Tracker API (FastAPI)"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.1",
+    "fastapi[standard]>=0.162.0",
+    "pydantic-settings>=2.16.1",
+    "sqlmodel>=0.0.48",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# E/F — ошибки, I — порядок импортов, UP — современный синтаксис, B — частые баги
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
