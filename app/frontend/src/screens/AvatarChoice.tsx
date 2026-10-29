@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { type Avatar, useAppStore } from "../store/useAppStore";
+import { type Avatar, useSetAvatar } from "../api";
 
 const options: { id: Avatar; src: string; label: string }[] = [
   { id: "male", src: "/images/avatars/male.webp", label: "Мужской аватар" },
@@ -9,7 +9,7 @@ const options: { id: Avatar; src: string; label: string }[] = [
 
 export function AvatarChoice() {
   const navigate = useNavigate();
-  const choose = useAppStore((s) => s.chooseAvatar);
+  const setAvatar = useSetAvatar();
 
   return (
     <div className="flex h-full flex-col items-center px-6 pt-10">
@@ -22,10 +22,13 @@ export function AvatarChoice() {
             type="button"
             key={o.id}
             aria-label={o.label}
-            onClick={() => {
-              choose(o.id);
-              navigate({ to: "/home" });
-            }}
+            disabled={setAvatar.isPending}
+            onClick={() =>
+              setAvatar.mutate(
+                { body: { avatar: o.id } },
+                { onSuccess: () => navigate({ to: "/home" }) },
+              )
+            }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 * i }}

@@ -32,17 +32,9 @@ export type DayExerciseOut = {
      */
     name: string;
     /**
-     * Weight
-     */
-    weight: number | null;
-    /**
      * Sets
      */
-    sets: number | null;
-    /**
-     * Reps
-     */
-    reps: number | null;
+    sets: Array<SetOut>;
 };
 
 /**
@@ -79,6 +71,10 @@ export type DaySummary = {
      * Count
      */
     count: number;
+    /**
+     * Done Exercises
+     */
+    done_exercises: Array<string>;
 };
 
 /**
@@ -150,17 +146,33 @@ export type MuscleGroupOut = {
 };
 
 /**
- * SetLogIn
+ * SetIn
+ *
+ * Один подход из карточки. Вес 0 = упражнение с собственным весом.
  */
-export type SetLogIn = {
+export type SetIn = {
     /**
      * Weight
      */
     weight: number;
     /**
-     * Sets
+     * Reps
      */
-    sets: number;
+    reps: number;
+};
+
+/**
+ * SetOut
+ */
+export type SetOut = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Weight
+     */
+    weight: number;
     /**
      * Reps
      */
@@ -297,6 +309,22 @@ export type SearchExercisesResponses = {
 
 export type SearchExercisesResponse = SearchExercisesResponses[keyof SearchExercisesResponses];
 
+export type ClearDaysData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/days';
+};
+
+export type ClearDaysResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type ClearDaysResponse = ClearDaysResponses[keyof ClearDaysResponses];
+
 export type ListDaysData = {
     body?: never;
     path?: never;
@@ -427,8 +455,8 @@ export type RemoveExerciseResponses = {
 
 export type RemoveExerciseResponse = RemoveExerciseResponses[keyof RemoveExerciseResponses];
 
-export type SaveLogData = {
-    body: SetLogIn;
+export type AddSetData = {
+    body: SetIn;
     path: {
         /**
          * Date
@@ -440,26 +468,102 @@ export type SaveLogData = {
         exercise_id: string;
     };
     query?: never;
-    url: '/api/days/{date}/exercises/{exercise_id}';
+    url: '/api/days/{date}/exercises/{exercise_id}/sets';
 };
 
-export type SaveLogErrors = {
+export type AddSetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type SaveLogError = SaveLogErrors[keyof SaveLogErrors];
+export type AddSetError = AddSetErrors[keyof AddSetErrors];
 
-export type SaveLogResponses = {
+export type AddSetResponses = {
+    /**
+     * Successful Response
+     */
+    201: DayOut;
+};
+
+export type AddSetResponse = AddSetResponses[keyof AddSetResponses];
+
+export type RemoveSetData = {
+    body?: never;
+    path: {
+        /**
+         * Date
+         */
+        date: string;
+        /**
+         * Exercise Id
+         */
+        exercise_id: string;
+        /**
+         * Set Id
+         */
+        set_id: number;
+    };
+    query?: never;
+    url: '/api/days/{date}/exercises/{exercise_id}/sets/{set_id}';
+};
+
+export type RemoveSetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveSetError = RemoveSetErrors[keyof RemoveSetErrors];
+
+export type RemoveSetResponses = {
     /**
      * Successful Response
      */
     200: DayOut;
 };
 
-export type SaveLogResponse = SaveLogResponses[keyof SaveLogResponses];
+export type RemoveSetResponse = RemoveSetResponses[keyof RemoveSetResponses];
+
+export type UpdateSetData = {
+    body: SetIn;
+    path: {
+        /**
+         * Date
+         */
+        date: string;
+        /**
+         * Exercise Id
+         */
+        exercise_id: string;
+        /**
+         * Set Id
+         */
+        set_id: number;
+    };
+    query?: never;
+    url: '/api/days/{date}/exercises/{exercise_id}/sets/{set_id}';
+};
+
+export type UpdateSetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSetError = UpdateSetErrors[keyof UpdateSetErrors];
+
+export type UpdateSetResponses = {
+    /**
+     * Successful Response
+     */
+    200: DayOut;
+};
+
+export type UpdateSetResponse = UpdateSetResponses[keyof UpdateSetResponses];
 
 export type GetMeData = {
     body?: never;

@@ -1,39 +1,39 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useExerciseCatalog } from "../api";
-import { ListRow, Panel } from "../components/ui";
-import { isDayDone, useAppStore } from "../store/useAppStore";
+import { useDays } from "../api";
+import { ListRow, Panel, QueryState } from "../components/ui";
+import { addDays, dayKey, useAppStore } from "../store/useAppStore";
 
-// История: все дни с тренировками, новые сверху. Тап открывает день на главной.
+// "2026-10-29" → "29.10"
+function formatDate(date: string): string {
+  return `${date.slice(8, 10)}.${date.slice(5, 7)}`;
+}
+
+// История: дни с тренировками за последний год, новые сверху.
+// Тап открывает день на главной.
 export function History() {
   const navigate = useNavigate();
-  const exerciseById = useExerciseCatalog().data ?? {};
-  const days = useAppStore((s) => s.days);
   const selectDay = useAppStore((s) => s.selectDay);
+  const today = new Date();
+  const days = useDays(dayKey(addDays(today, -365)), dayKey(addDays(today, 7)));
 
-  const list = Object.entries(days)
-    .filter(([, entries]) => isDayDone(entries))
-    .sort(([a], [b]) => b.localeCompare(a));
+  const list = (days.data ?? []).filter((d) => d.done);
 
   return (
     <Panel className="flex-1 overflow-y-auto">
-      {list.length === 0 ? (
+      <QueryState isPending={days.isPending} isError={days.isError} />
+      {days.isSuccess && list.length === 0 ? (
         <div className="grid h-full place-items-center text-text-faint">HISTORY</div>
       ) : (
-        list.map(([day, entries]) => (
+        list.map((d) => (
           <ListRow
-            key={day}
+            key={d.date}
             onClick={() => {
-              selectDay(day);
+              selectDay(d.date);
               navigate({ to: "/home" });
             }}
           >
-            <span className="text-accent">{day.slice(5).replace("-", ".")}</span>{" "}
-            <span className="text-text-muted">
-              {entries
-                .filter((e) => e.log)
-                .map((e) => exerciseById[e.exerciseId]?.name)
-                .join(", ")}
-            </span>
+            <span className="text-accent">{formatDate(d.date)}</span>{" "}
+            <span className="text-text-muted">{d.done_exercises.join(", ")}</span>
           </ListRow>
         ))
       )}

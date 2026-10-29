@@ -72,6 +72,8 @@ pnpm build   # проверка типов TypeScript и сборка
 - **Данные дня пока в браузере.** Другой браузер или режим инкогнито покажет пустой день. Настройки → Reset data очищает всё.
 - **Иконки SVG исключены из Biome:** они декоративные (`aria-hidden`), правило про `<title>` к ним не относится.
 - **shadcn/ui и Vitest** из плана стека пока не понадобились. Добавим, когда будут нужны.
+- **`pnpm` или `uv` «not recognized».** Терминал VS Code не видит новые программы, пока VS Code не перезапущен целиком (File → Exit). Быстрое решение для текущего окна: `$env:Path = "$env:USERPROFILE\.local\bin;$env:APPDATA\npm;$env:Path"`. Если pnpm нет и там, узнай его папку командой `npm config get prefix`.
+- **С телефона «This site can't be reached».** Мешают VPN на компьютере (у нас AmneziaVPN) или брандмауэр Windows. Выключи VPN или включи в нём доступ к локальной сети. Сеть Windows должна быть частной: `Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private` в PowerShell от администратора.
 
 ## Задание для тебя
 

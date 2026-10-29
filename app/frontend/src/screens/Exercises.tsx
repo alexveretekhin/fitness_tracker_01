@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { useMuscleGroups } from "../api";
+import { useDay, useDayMutations, useMuscleGroups } from "../api";
 import { listGroupExercisesOptions } from "../api/generated/@tanstack/react-query.gen";
 import { useFly } from "../components/FlyToHome";
 import { ListRow, Panel, PlayButton, QueryState, SearchField } from "../components/ui";
@@ -14,8 +14,12 @@ export function Exercises() {
   const { groupId } = useParams({ from: "/shell/muscles/$groupId" });
   const group = useMuscleGroups().data?.find((g) => g.id === groupId);
   const exercisesQuery = useQuery(listGroupExercisesOptions({ path: { group_id: groupId } }));
-  const addExercise = useAppStore((s) => s.addExercise);
-  const picked = useAppStore((s) => s.days[s.selectedDay]) ?? [];
+  const date = useAppStore((s) => s.selectedDay);
+  const bumpRound = useAppStore((s) => s.bumpRound);
+  const picked = useDay(date).data?.exercises ?? [];
+  const { addExercise } = useDayMutations();
+  // Упражнения, которые уже летят к «+»: второй тап по ним ничего не делает
+  const [flying, setFlying] = useState<Set<string>>(new Set());
   const { fly } = useFly();
   const [q, setQ] = useState("");
   const [demoId, setDemoId] = useState<string | null>(null);
@@ -30,16 +34,28 @@ export function Exercises() {
       <SearchField value={q} onChange={setQ} />
       <QueryState isPending={exercisesQuery.isPending} isError={exercisesQuery.isError} />
       {list.map((e) => {
-        const already = picked.some((p) => p.exerciseId === e.id);
+        const already = flying.has(e.id) || picked.some((p) => p.exercise_id === e.id);
         return (
           <div key={e.id}>
             <ListRow
               muted={already}
               onClick={async (ev) => {
                 if (already) return;
+                setFlying((f) => new Set(f).add(e.id));
                 const rect = ev.currentTarget.getBoundingClientRect();
                 await fly(rect, e.name);
-                addExercise(e.id);
+                bumpRound(); // счётчик на «+» растёт, когда упражнение долетело
+                addExercise.mutate(
+                  { path: { date }, body: { exercise_id: e.id } },
+                  {
+                    onSettled: () =>
+                      setFlying((f) => {
+                        const next = new Set(f);
+                        next.delete(e.id);
+                        return next;
+                      }),
+                  },
+                );
               }}
               right={
                 <PlayButton

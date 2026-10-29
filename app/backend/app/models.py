@@ -4,7 +4,10 @@
 Схема:
 
     User 1──* WorkoutDay 1──* DayExercise *──1 Exercise *──* MuscleGroup
-                                                        (через ExerciseMuscle)
+                                   │                    (через ExerciseMuscle)
+                                   1
+                                   │
+                                   * WorkoutSet (один подход: вес × повторы)
 """
 
 import datetime as dt
@@ -60,8 +63,12 @@ class WorkoutDay(SQLModel, table=True):
     date: dt.date = Field(index=True)
 
 
+def _now() -> dt.datetime:
+    return dt.datetime.now(dt.UTC)
+
+
 class DayExercise(SQLModel, table=True):
-    """Упражнение, добавленное в день. Вес/подходы/повторы пусты, пока их не записали."""
+    """Упражнение, добавленное в день. Подходы к нему лежат в WorkoutSet."""
 
     __table_args__ = (UniqueConstraint("day_id", "exercise_id"),)
 
@@ -69,7 +76,15 @@ class DayExercise(SQLModel, table=True):
     day_id: int = Field(foreign_key="workoutday.id", index=True)
     exercise_id: str = Field(foreign_key="exercise.id")
     position: int = 0
-    weight: float | None = None
-    sets: int | None = None
-    reps: int | None = None
-    created_at: dt.datetime = Field(default_factory=lambda: dt.datetime.now(dt.UTC))
+    created_at: dt.datetime = Field(default_factory=_now)
+
+
+class WorkoutSet(SQLModel, table=True):
+    """Один подход: сделал, нажал «+ подход», записался вес и повторы."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    day_exercise_id: int = Field(foreign_key="dayexercise.id", index=True)
+    position: int = 0  # порядок подходов: 0, 1, 2...
+    weight: float = 0
+    reps: int = 0
+    created_at: dt.datetime = Field(default_factory=_now)

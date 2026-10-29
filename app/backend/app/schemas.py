@@ -23,18 +23,23 @@ class ExerciseOut(BaseModel):
     primary_muscles: list[str]
 
 
-class SetLogIn(BaseModel):
+class SetIn(BaseModel):
+    """Один подход из карточки. Вес 0 = упражнение с собственным весом."""
+
     weight: float = Field(ge=0, le=1000)
-    sets: int = Field(ge=0, le=100)
-    reps: int = Field(ge=0, le=1000)
+    reps: int = Field(ge=1, le=1000)
+
+
+class SetOut(BaseModel):
+    id: int
+    weight: float
+    reps: int
 
 
 class DayExerciseOut(BaseModel):
     exercise_id: str
     name: str
-    weight: float | None
-    sets: int | None
-    reps: int | None
+    sets: list[SetOut]  # подходы по порядку, пустой список = ещё не начинал
 
 
 class DayOut(BaseModel):
@@ -46,7 +51,8 @@ class DayOut(BaseModel):
 class DaySummary(BaseModel):
     date: dt.date
     done: bool
-    count: int
+    count: int  # сколько упражнений добавлено в день
+    done_exercises: list[str]  # названия упражнений, где записан хотя бы один подход
 
 
 class AddExerciseIn(BaseModel):

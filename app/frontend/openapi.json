@@ -207,6 +207,19 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "days"
+        ],
+        "summary": "Clear Days",
+        "description": "Удалить все тренировки пользователя (кнопка Reset data в настройках).",
+        "operationId": "clear_days",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
       }
     },
     "/api/days/{date}": {
@@ -307,13 +320,66 @@
       }
     },
     "/api/days/{date}/exercises/{exercise_id}": {
-      "put": {
+      "delete": {
         "tags": [
           "days"
         ],
-        "summary": "Save Log",
-        "description": "Сохранить вес, подходы и повторы из карточки.",
-        "operationId": "save_log",
+        "summary": "Remove Exercise",
+        "description": "Убрать упражнение из дня вместе с его подходами.",
+        "operationId": "remove_exercise",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date"
+            }
+          },
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exercise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/days/{date}/exercises/{exercise_id}/sets": {
+      "post": {
+        "tags": [
+          "days"
+        ],
+        "summary": "Add Set",
+        "description": "Записать подход (кнопка «+ подход» в карточке).",
+        "operationId": "add_set",
         "parameters": [
           {
             "name": "date",
@@ -340,7 +406,79 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetLogIn"
+                "$ref": "#/components/schemas/SetIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/days/{date}/exercises/{exercise_id}/sets/{set_id}": {
+      "put": {
+        "tags": [
+          "days"
+        ],
+        "summary": "Update Set",
+        "description": "Исправить вес или повторы в уже записанном подходе.",
+        "operationId": "update_set",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date"
+            }
+          },
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "set_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Set Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetIn"
               }
             }
           }
@@ -372,8 +510,8 @@
         "tags": [
           "days"
         ],
-        "summary": "Remove Exercise",
-        "operationId": "remove_exercise",
+        "summary": "Remove Set",
+        "operationId": "remove_set",
         "parameters": [
           {
             "name": "date",
@@ -392,6 +530,15 @@
             "schema": {
               "type": "string",
               "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "set_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Set Id"
             }
           }
         ],
@@ -513,47 +660,19 @@
             "type": "string",
             "title": "Name"
           },
-          "weight": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Weight"
-          },
           "sets": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "items": {
+              "$ref": "#/components/schemas/SetOut"
+            },
+            "type": "array",
             "title": "Sets"
-          },
-          "reps": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reps"
           }
         },
         "type": "object",
         "required": [
           "exercise_id",
           "name",
-          "weight",
-          "sets",
-          "reps"
+          "sets"
         ],
         "title": "DayExerciseOut"
       },
@@ -598,13 +717,21 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "done_exercises": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Done Exercises"
           }
         },
         "type": "object",
         "required": [
           "date",
           "done",
-          "count"
+          "count",
+          "done_exercises"
         ],
         "title": "DaySummary"
       },
@@ -718,7 +845,7 @@
         ],
         "title": "MuscleGroupOut"
       },
-      "SetLogIn": {
+      "SetIn": {
         "properties": {
           "weight": {
             "type": "number",
@@ -726,26 +853,43 @@
             "minimum": 0.0,
             "title": "Weight"
           },
-          "sets": {
-            "type": "integer",
-            "maximum": 100.0,
-            "minimum": 0.0,
-            "title": "Sets"
-          },
           "reps": {
             "type": "integer",
             "maximum": 1000.0,
-            "minimum": 0.0,
+            "minimum": 1.0,
             "title": "Reps"
           }
         },
         "type": "object",
         "required": [
           "weight",
-          "sets",
           "reps"
         ],
-        "title": "SetLogIn"
+        "title": "SetIn",
+        "description": "Один подход из карточки. Вес 0 = упражнение с собственным весом."
+      },
+      "SetOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight"
+          },
+          "reps": {
+            "type": "integer",
+            "title": "Reps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "weight",
+          "reps"
+        ],
+        "title": "SetOut"
       },
       "ValidationError": {
         "properties": {

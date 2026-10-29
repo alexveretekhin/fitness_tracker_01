@@ -1,11 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useClearDays, useMe } from "../api";
 import { ListRow, Panel } from "../components/ui";
-import { useAppStore } from "../store/useAppStore";
 
 export function Settings() {
   const navigate = useNavigate();
-  const avatar = useAppStore((s) => s.avatar);
-  const resetAll = useAppStore((s) => s.resetAll);
+  const avatar = useMe().data?.avatar;
+  const clearDays = useClearDays();
 
   return (
     <Panel className="flex-1 overflow-y-auto">
@@ -17,9 +17,8 @@ export function Settings() {
       <ListRow onClick={() => navigate({ to: "/history" })}>History</ListRow>
       <ListRow
         onClick={() => {
-          if (confirm("Удалить все тренировки и аватар?")) {
-            resetAll();
-            navigate({ to: "/" });
+          if (confirm("Удалить все тренировки? Это нельзя отменить.")) {
+            clearDays.mutate({}, { onSuccess: () => navigate({ to: "/home" }) });
           }
         }}
       >

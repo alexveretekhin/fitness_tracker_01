@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, GetDayData, GetDayErrors, GetDayResponses, GetMeData, GetMeResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, SaveLogData, SaveLogErrors, SaveLogResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetMeData, GetMeResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -45,6 +45,13 @@ export const listGroupExercises = <ThrowOnError extends boolean = false>(options
 export const searchExercises = <ThrowOnError extends boolean = false>(options?: Options<SearchExercisesData, ThrowOnError>): RequestResult<SearchExercisesResponses, SearchExercisesErrors, ThrowOnError> => (options?.client ?? client).get<SearchExercisesResponses, SearchExercisesErrors, ThrowOnError>({ url: '/api/exercises', ...options });
 
 /**
+ * Clear Days
+ *
+ * Удалить все тренировки пользователя (кнопка Reset data в настройках).
+ */
+export const clearDays = <ThrowOnError extends boolean = false>(options?: Options<ClearDaysData, ThrowOnError>): RequestResult<ClearDaysResponses, unknown, ThrowOnError> => (options?.client ?? client).delete<ClearDaysResponses, unknown, ThrowOnError>({ url: '/api/days', ...options });
+
+/**
  * List Days
  *
  * Сводка по дням для ленты недели и истории: /days?from=2026-10-20&to=2026-10-28
@@ -72,16 +79,37 @@ export const addExercise = <ThrowOnError extends boolean = false>(options: Optio
 
 /**
  * Remove Exercise
+ *
+ * Убрать упражнение из дня вместе с его подходами.
  */
 export const removeExercise = <ThrowOnError extends boolean = false>(options: Options<RemoveExerciseData, ThrowOnError>): RequestResult<RemoveExerciseResponses, RemoveExerciseErrors, ThrowOnError> => (options.client ?? client).delete<RemoveExerciseResponses, RemoveExerciseErrors, ThrowOnError>({ url: '/api/days/{date}/exercises/{exercise_id}', ...options });
 
 /**
- * Save Log
+ * Add Set
  *
- * Сохранить вес, подходы и повторы из карточки.
+ * Записать подход (кнопка «+ подход» в карточке).
  */
-export const saveLog = <ThrowOnError extends boolean = false>(options: Options<SaveLogData, ThrowOnError>): RequestResult<SaveLogResponses, SaveLogErrors, ThrowOnError> => (options.client ?? client).put<SaveLogResponses, SaveLogErrors, ThrowOnError>({
-    url: '/api/days/{date}/exercises/{exercise_id}',
+export const addSet = <ThrowOnError extends boolean = false>(options: Options<AddSetData, ThrowOnError>): RequestResult<AddSetResponses, AddSetErrors, ThrowOnError> => (options.client ?? client).post<AddSetResponses, AddSetErrors, ThrowOnError>({
+    url: '/api/days/{date}/exercises/{exercise_id}/sets',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove Set
+ */
+export const removeSet = <ThrowOnError extends boolean = false>(options: Options<RemoveSetData, ThrowOnError>): RequestResult<RemoveSetResponses, RemoveSetErrors, ThrowOnError> => (options.client ?? client).delete<RemoveSetResponses, RemoveSetErrors, ThrowOnError>({ url: '/api/days/{date}/exercises/{exercise_id}/sets/{set_id}', ...options });
+
+/**
+ * Update Set
+ *
+ * Исправить вес или повторы в уже записанном подходе.
+ */
+export const updateSet = <ThrowOnError extends boolean = false>(options: Options<UpdateSetData, ThrowOnError>): RequestResult<UpdateSetResponses, UpdateSetErrors, ThrowOnError> => (options.client ?? client).put<UpdateSetResponses, UpdateSetErrors, ThrowOnError>({
+    url: '/api/days/{date}/exercises/{exercise_id}/sets/{set_id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
