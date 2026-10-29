@@ -1,22 +1,8 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
-// Состояние приложения. Zustand хранит его в памяти, а persist
-// сохраняет в localStorage браузера, поэтому после перезагрузки страницы
-// всё на месте. На этапе 4 данные начнут сохраняться на бэкенде.
-
-export type Avatar = "male" | "female";
-
-export type SetLog = {
-  weight: number;
-  sets: number;
-  reps: number;
-};
-
-export type DayEntry = {
-  exerciseId: string;
-  log: SetLog | null; // null = упражнение выбрано, но подходы ещё не записаны
-};
+// Состояние интерфейса: какой день выбран в ленте и сколько упражнений
+// улетело в «+» за этот заход. Сами тренировки и аватар живут на сервере
+// (см. src/api), здесь только то, что нужно экрану прямо сейчас.
 
 // Ключ дня: "2026-10-24" по местному времени пользователя
 export function dayKey(date: Date): string {
@@ -26,74 +12,27 @@ export function dayKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+// Дата на n дней вперёд (или назад, если n < 0)
+export function addDays(date: Date, n: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
 type AppState = {
-  avatar: Avatar | null;
-  days: Record<string, DayEntry[]>;
   selectedDay: string;
   addedThisRound: number; // счётчик на кнопке «+», пока выбираем упражнения
 
-  chooseAvatar: (avatar: Avatar) => void;
   selectDay: (key: string) => void;
-  addExercise: (exerciseId: string) => void;
-  removeExercise: (exerciseId: string) => void;
-  saveLog: (exerciseId: string, log: SetLog) => void;
+  bumpRound: () => void;
   resetRound: () => void;
-  resetAll: () => void;
 };
 
-export const useAppStore = create<AppState>()(
-  persist(
-    (set) => ({
-      avatar: null,
-      days: {},
-      selectedDay: dayKey(new Date()),
-      addedThisRound: 0,
+export const useAppStore = create<AppState>()((set) => ({
+  selectedDay: dayKey(new Date()),
+  addedThisRound: 0,
 
-      chooseAvatar: (avatar) => set({ avatar }),
-      selectDay: (key) => set({ selectedDay: key }),
-
-      addExercise: (exerciseId) =>
-        set((s) => {
-          const list = s.days[s.selectedDay] ?? [];
-          if (list.some((e) => e.exerciseId === exerciseId)) return s; // уже добавлено
-          return {
-            days: { ...s.days, [s.selectedDay]: [...list, { exerciseId, log: null }] },
-            addedThisRound: s.addedThisRound + 1,
-          };
-        }),
-
-      removeExercise: (exerciseId) =>
-        set((s) => ({
-          days: {
-            ...s.days,
-            [s.selectedDay]: (s.days[s.selectedDay] ?? []).filter(
-              (e) => e.exerciseId !== exerciseId,
-            ),
-          },
-        })),
-
-      saveLog: (exerciseId, log) =>
-        set((s) => ({
-          days: {
-            ...s.days,
-            [s.selectedDay]: (s.days[s.selectedDay] ?? []).map((e) =>
-              e.exerciseId === exerciseId ? { ...e, log } : e,
-            ),
-          },
-        })),
-
-      resetRound: () => set({ addedThisRound: 0 }),
-      resetAll: () => set({ avatar: null, days: {}, addedThisRound: 0 }),
-    }),
-    {
-      name: "fitness-tracker",
-      // Выбранный день не сохраняем: при каждом запуске открываем сегодня
-      partialize: (s) => ({ avatar: s.avatar, days: s.days }),
-    },
-  ),
-);
-
-// Огонёк горит, если в этот день записан хотя бы один подход
-export function isDayDone(entries: DayEntry[] | undefined): boolean {
-  return (entries ?? []).some((e) => e.log !== null);
-}
+  selectDay: (key) => set({ selectedDay: key }),
+  bumpRound: () => set((s) => ({ addedThisRound: s.addedThisRound + 1 })),
+  resetRound: () => set({ addedThisRound: 0 }),
+}));

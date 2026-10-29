@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import { dayKey, isDayDone, useAppStore } from "../store/useAppStore";
+import { useDays } from "../api";
+import { addDays, dayKey, useAppStore } from "../store/useAppStore";
 import { Icon } from "./Icon";
 
 const NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -7,25 +8,24 @@ const NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 // 9 дней как в макете: 4 дня назад, сегодня, 4 дня вперёд
 function visibleDays(): Date[] {
   const today = new Date();
-  return Array.from({ length: 9 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i - 4);
-    return d;
-  });
+  return Array.from({ length: 9 }, (_, i) => addDays(today, i - 4));
 }
 
 export function WeekStrip() {
-  const days = useAppStore((s) => s.days);
   const selected = useAppStore((s) => s.selectedDay);
   const selectDay = useAppStore((s) => s.selectDay);
   const today = dayKey(new Date());
+  const visible = visibleDays();
+  // Одним запросом узнаём, в какие из видимых дней была тренировка
+  const summary = useDays(dayKey(visible[0]), dayKey(visible[visible.length - 1]));
+  const doneDays = new Set(summary.data?.filter((d) => d.done).map((d) => d.date));
 
   return (
     <div className="grid grid-cols-9 text-center">
-      {visibleDays().map((d) => {
+      {visible.map((d) => {
         const key = dayKey(d);
         const weekend = d.getDay() === 0 || d.getDay() === 6;
-        const done = isDayDone(days[key]);
+        const done = doneDays.has(key);
         return (
           <button
             type="button"

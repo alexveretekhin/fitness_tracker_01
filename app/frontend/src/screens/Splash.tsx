@@ -1,13 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useAppStore } from "../store/useAppStore";
 
 // Заставка: белый череп заливается красным снизу вверх, потом переход дальше.
 // Тап по экрану пропускает заставку.
 export function Splash() {
   const navigate = useNavigate();
-  const avatar = useAppStore((s) => s.avatar);
-  const next = () => navigate({ to: avatar ? "/home" : "/avatar", replace: true });
+  // Если аватар ещё не выбран, главная сама отправит на его выбор (см. router.tsx)
+  const next = () => navigate({ to: "/home", replace: true });
 
   return (
     <button type="button" onClick={next} className="relative h-full w-full overflow-hidden">

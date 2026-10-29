@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, getDay, getMe, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, saveLog, searchExercises, updateMe } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, GetDayData, GetDayError, GetDayResponse, GetMeData, GetMeResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, SaveLogData, SaveLogError, SaveLogResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse } from '../types.gen';
+import { addExercise, addSet, clearDays, getDay, getMe, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetMeData, GetMeResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -117,6 +117,25 @@ export const searchExercisesOptions = (options?: Options<SearchExercisesData>) =
     queryKey: searchExercisesQueryKey(options)
 });
 
+/**
+ * Clear Days
+ *
+ * Удалить все тренировки пользователя (кнопка Reset data в настройках).
+ */
+export const clearDaysMutation = (options?: Partial<Options<ClearDaysData>>): UseMutationOptions<ClearDaysResponse, DefaultError, Options<ClearDaysData>> => {
+    const mutationOptions: UseMutationOptions<ClearDaysResponse, DefaultError, Options<ClearDaysData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await clearDays({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
 export const listDaysQueryKey = (options: Options<ListDaysData>) => createQueryKey('listDays', options);
 
 /**
@@ -176,6 +195,8 @@ export const addExerciseMutation = (options?: Partial<Options<AddExerciseData>>)
 
 /**
  * Remove Exercise
+ *
+ * Убрать упражнение из дня вместе с его подходами.
  */
 export const removeExerciseMutation = (options?: Partial<Options<RemoveExerciseData>>): UseMutationOptions<RemoveExerciseResponse, RemoveExerciseError, Options<RemoveExerciseData>> => {
     const mutationOptions: UseMutationOptions<RemoveExerciseResponse, RemoveExerciseError, Options<RemoveExerciseData>> = {
@@ -192,14 +213,50 @@ export const removeExerciseMutation = (options?: Partial<Options<RemoveExerciseD
 };
 
 /**
- * Save Log
+ * Add Set
  *
- * Сохранить вес, подходы и повторы из карточки.
+ * Записать подход (кнопка «+ подход» в карточке).
  */
-export const saveLogMutation = (options?: Partial<Options<SaveLogData>>): UseMutationOptions<SaveLogResponse, SaveLogError, Options<SaveLogData>> => {
-    const mutationOptions: UseMutationOptions<SaveLogResponse, SaveLogError, Options<SaveLogData>> = {
+export const addSetMutation = (options?: Partial<Options<AddSetData>>): UseMutationOptions<AddSetResponse, AddSetError, Options<AddSetData>> => {
+    const mutationOptions: UseMutationOptions<AddSetResponse, AddSetError, Options<AddSetData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await saveLog({
+            const { data } = await addSet({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Remove Set
+ */
+export const removeSetMutation = (options?: Partial<Options<RemoveSetData>>): UseMutationOptions<RemoveSetResponse, RemoveSetError, Options<RemoveSetData>> => {
+    const mutationOptions: UseMutationOptions<RemoveSetResponse, RemoveSetError, Options<RemoveSetData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await removeSet({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update Set
+ *
+ * Исправить вес или повторы в уже записанном подходе.
+ */
+export const updateSetMutation = (options?: Partial<Options<UpdateSetData>>): UseMutationOptions<UpdateSetResponse, UpdateSetError, Options<UpdateSetData>> => {
+    const mutationOptions: UseMutationOptions<UpdateSetResponse, UpdateSetError, Options<UpdateSetData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateSet({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

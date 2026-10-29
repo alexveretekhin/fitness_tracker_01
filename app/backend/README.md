@@ -45,8 +45,11 @@ tests/         # тесты (uv run pytest)
 | GET | `/api/days?from=…&to=…` | Сводка по дням: огоньки для ленты недели и история |
 | GET | `/api/days/{date}` | Упражнения дня |
 | POST | `/api/days/{date}/exercises` | Добавить упражнение в день |
-| PUT | `/api/days/{date}/exercises/{id}` | Записать вес, подходы, повторы |
-| DELETE | `/api/days/{date}/exercises/{id}` | Убрать упражнение из дня |
+| DELETE | `/api/days/{date}/exercises/{id}` | Убрать упражнение из дня вместе с подходами |
+| POST | `/api/days/{date}/exercises/{id}/sets` | Записать подход: вес и повторы |
+| PUT | `/api/days/{date}/exercises/{id}/sets/{set_id}` | Исправить подход |
+| DELETE | `/api/days/{date}/exercises/{id}/sets/{set_id}` | Удалить подход |
+| DELETE | `/api/days` | Удалить все тренировки (Reset data) |
 | GET/PUT | `/api/me` | Профиль и аватар |
 
 ## Схема API для фронтенда

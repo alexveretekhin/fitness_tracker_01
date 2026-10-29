@@ -5,6 +5,9 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import type { ReactNode } from "react";
+import { queryClient } from "./api";
+import { getMeOptions } from "./api/generated/@tanstack/react-query.gen";
 import { BottomNav } from "./components/BottomNav";
 import { FlyProvider } from "./components/FlyToHome";
 import { AvatarChoice } from "./screens/AvatarChoice";
@@ -14,7 +17,6 @@ import { Home } from "./screens/Home";
 import { MuscleGroups } from "./screens/MuscleGroups";
 import { Settings } from "./screens/Settings";
 import { Splash } from "./screens/Splash";
-import { useAppStore } from "./store/useAppStore";
 
 // Карта экранов приложения. Каждый route = адрес в браузере + компонент.
 //
@@ -27,13 +29,42 @@ import { useAppStore } from "./store/useAppStore";
 //  /settings              настройки        ┘
 
 // Корень: рамка «телефона», на десктопе по центру экрана
-const rootRoute = createRootRoute({
-  component: () => (
+function Frame({ children }: { children: ReactNode }) {
+  return (
     <div className="flex min-h-dvh justify-center bg-canvas">
       <div className="relative flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-bg">
-        <Outlet />
+        {children}
       </div>
     </div>
+  );
+}
+
+const rootRoute = createRootRoute({
+  component: () => (
+    <Frame>
+      <Outlet />
+    </Frame>
+  ),
+  // Если сервер не ответил (например, бэкенд не запущен), показываем это вместо экрана
+  errorComponent: ({ reset }) => (
+    <Frame>
+      <div className="grid h-full place-items-center px-6 text-center">
+        <div>
+          <p className="text-weekend">Нет связи с сервером</p>
+          <p className="mt-2 text-sm text-text-muted">Запущен ли бэкенд (uv run fastapi dev)?</p>
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              router.invalidate();
+            }}
+            className="mt-4 h-11 rounded-row bg-accent px-6 font-bold text-bg"
+          >
+            Повторить
+          </button>
+        </div>
+      </div>
+    </Frame>
   ),
 });
 
@@ -49,9 +80,11 @@ const avatarRoute = createRoute({
 const shellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "shell",
-  beforeLoad: () => {
-    // Без выбранного аватара сначала отправляем выбирать его
-    if (!useAppStore.getState().avatar) throw redirect({ to: "/avatar" });
+  beforeLoad: async () => {
+    // Без выбранного аватара сначала отправляем выбирать его.
+    // ensureQueryData берёт профиль из кэша, а если его нет, спрашивает сервер.
+    const me = await queryClient.ensureQueryData(getMeOptions());
+    if (!me.avatar) throw redirect({ to: "/avatar" });
   },
   component: () => (
     <FlyProvider>

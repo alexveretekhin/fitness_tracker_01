@@ -66,4 +66,4 @@ uv run ruff check .
 ## Задание для тебя
 
 1. Добавь своё упражнение в [catalog.py](../../app/backend/app/catalog.py) (например, `("incline-bench", "Incline bench", ["chest"], ["shoulders"], None)`), запусти `uv run python -m app.seed` и найди его на `/docs` через `GET /api/exercises?q=incline`.
-2. Через `/docs` добавь упражнение в сегодняшний день (`POST /api/days/{date}/exercises`), запиши подходы (`PUT`) и посмотри, как в `GET /api/days` появился `"done": true`.
+2. Через `/docs` добавь упражнение в сегодняшний день (`POST /api/days/{date}/exercises`), запиши подходы (`PUT`) и посмотри, как в `GET /api/days` появился `"done": true`. *С этапа 4 подходы записываются по одному через `POST .../sets`, см. [этап 4](04-workouts.md).*

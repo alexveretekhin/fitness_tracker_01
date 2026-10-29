@@ -14,6 +14,14 @@ git push -u origin stage-1-design  # отправить ветку на GitHub
 git checkout main               # вернуться в main
 ```
 
+## Если «uv» или «pnpm» not recognized
+
+```powershell
+$env:Path = "$env:USERPROFILE\.local\bin;$env:APPDATA\npm;$env:Path"  # только для этого окна
+```
+
+Насовсем помогает полный перезапуск VS Code (File → Exit) или компьютера.
+
 ## Проверить инструменты
 
 ```powershell
@@ -27,7 +35,7 @@ pnpm --version
 ```powershell
 cd app\backend
 uv sync                                    # поставить зависимости, создать .venv
-uv run alembic upgrade head                # применить миграции к базе
+uv run alembic upgrade head                # применить миграции к базе (после каждого git pull!)
 uv run python -m app.seed                  # залить каталог упражнений
 uv run fastapi dev                         # запустить сервер, docs: http://127.0.0.1:8000/docs
 uv run pytest                              # тесты
