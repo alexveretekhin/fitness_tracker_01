@@ -50,6 +50,8 @@ uv add <пакет>                             # добавить библио�
 cd app\frontend
 pnpm install   # поставить зависимости
 pnpm dev       # запустить, адрес http://localhost:5173 (бэкенд должен работать в другом окне)
+pnpm dev:https # то же по https: для микрофона с телефона, https://192.168.1.11:5173
+pnpm test      # тесты фронтенда (Vitest)
 pnpm lint      # проверка кода Biome
 pnpm format    # исправить форматирование
 pnpm build     # проверка типов и сборка для продакшена

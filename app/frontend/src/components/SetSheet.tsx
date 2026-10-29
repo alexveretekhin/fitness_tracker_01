@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import type { DayExerciseOut, SetIn, SetOut } from "../api";
+import { VoiceInput } from "./VoiceInput";
 
 type Props = {
   exercise: DayExerciseOut | null; // null = карточка закрыта
@@ -14,7 +15,8 @@ type Props = {
 
 // Карточка упражнения: выезжает снизу при тапе на упражнение на главной.
 // Сделал подход, нажал «+ подход», он записался. Следующий подход
-// предлагается с тем же весом и повторами, их можно поправить кнопками − / +.
+// предлагается с тем же весом и повторами, их можно поправить кнопками − / +
+// или сказать голосом (кнопка 🎤).
 export function SetSheet({ exercise, onClose, ...actions }: Props) {
   return (
     <AnimatePresence>
@@ -160,6 +162,15 @@ function SetEditor({
           onChange={(reps) => setDraft((d) => ({ ...d, reps }))}
         />
       </div>
+      <VoiceInput
+        onParsed={(heard) =>
+          // Меняем только то, что прозвучало: сказал «10 раз», вес остался прежним
+          setDraft((d) => ({
+            weight: heard.weight !== undefined ? String(heard.weight) : d.weight,
+            reps: heard.reps !== undefined ? String(heard.reps) : d.reps,
+          }))
+        }
+      />
 
       <button
         type="button"

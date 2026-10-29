@@ -23,6 +23,7 @@ src/
     generated/   #   клиент из схемы API (pnpm api), руками не править
   screens/       # экраны
   components/    # повторяющиеся части интерфейса
+  lib/           # логика без интерфейса: разбор фраз, распознавание речи (+ тесты *.test.ts)
   store/         # состояние приложения (Zustand)
   styles/        # Tailwind и токены дизайна
   assets/icons/  # SVG-иконки
