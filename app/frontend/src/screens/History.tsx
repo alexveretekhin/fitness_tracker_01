@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useDays } from "../api";
 import { ListRow, Panel, QueryState } from "../components/ui";
-import { addDays, dayKey, useAppStore } from "../store/useAppStore";
+import { addDays, dayKey, fromDayKey, useAppStore } from "../store/useAppStore";
 
 // "2026-10-29" → "29.10"
 function formatDate(date: string): string {
@@ -13,7 +13,7 @@ function formatDate(date: string): string {
 export function History() {
   const navigate = useNavigate();
   const selectDay = useAppStore((s) => s.selectDay);
-  const today = new Date();
+  const today = fromDayKey(useAppStore((s) => s.today));
   const days = useDays(dayKey(addDays(today, -365)), dayKey(addDays(today, 7)));
 
   const list = (days.data ?? []).filter((d) => d.done);

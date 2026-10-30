@@ -1,21 +1,20 @@
 import { motion } from "motion/react";
 import { useDays } from "../api";
-import { addDays, dayKey, useAppStore } from "../store/useAppStore";
+import { addDays, dayKey, fromDayKey, useAppStore } from "../store/useAppStore";
 import { Icon } from "./Icon";
 
 const NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 // 9 дней как в макете: 4 дня назад, сегодня, 4 дня вперёд
-function visibleDays(): Date[] {
-  const today = new Date();
-  return Array.from({ length: 9 }, (_, i) => addDays(today, i - 4));
+function visibleDays(today: string): Date[] {
+  return Array.from({ length: 9 }, (_, i) => addDays(fromDayKey(today), i - 4));
 }
 
 export function WeekStrip() {
   const selected = useAppStore((s) => s.selectedDay);
   const selectDay = useAppStore((s) => s.selectDay);
-  const today = dayKey(new Date());
-  const visible = visibleDays();
+  const today = useAppStore((s) => s.today);
+  const visible = visibleDays(today);
   // Одним запросом узнаём, в какие из видимых дней была тренировка
   const summary = useDays(dayKey(visible[0]), dayKey(visible[visible.length - 1]));
   const doneDays = new Set(summary.data?.filter((d) => d.done).map((d) => d.date));
