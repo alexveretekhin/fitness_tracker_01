@@ -10,6 +10,7 @@ import { useAppStore } from "../store/useAppStore";
 export function Home() {
   const navigate = useNavigate();
   const date = useAppStore((s) => s.selectedDay);
+  const selectDay = useAppStore((s) => s.selectDay);
   const day = useDay(date);
   const m = useDayMutations();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -21,7 +22,7 @@ export function Home() {
   return (
     <>
       <Panel>
-        <WeekStrip />
+        <WeekStrip selected={date} onPick={selectDay} />
       </Panel>
 
       <Panel className="mt-2.5 flex-1 overflow-y-auto">
