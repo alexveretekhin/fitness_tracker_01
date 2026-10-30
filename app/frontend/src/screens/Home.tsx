@@ -34,9 +34,25 @@ export function Home() {
             key={e.exercise_id}
             onClick={() => setOpenId(e.exercise_id)}
             right={
-              e.sets.length > 0 ? (
-                <span className="pr-1.5 text-xs text-text-muted">{e.sets.length} подх.</span>
-              ) : null
+              <>
+                {e.sets.length > 0 && (
+                  <span className="text-xs text-text-muted">{e.sets.length} подх.</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Если подходы уже записаны, переспрашиваем: они удалятся вместе с упражнением
+                    const n = e.sets.length;
+                    if (n > 0 && !confirm(`Убрать «${e.name}» вместе с подходами (${n})?`)) return;
+                    m.removeExercise.mutate({ path: { date, exercise_id: e.exercise_id } });
+                  }}
+                  disabled={busy}
+                  aria-label={`Убрать ${e.name}`}
+                  className="-mr-1.5 grid size-tap place-items-center text-lg text-text-muted active:text-accent"
+                >
+                  ×
+                </button>
+              </>
             }
           >
             {e.name}
@@ -61,10 +77,6 @@ export function Home() {
           open &&
           m.removeSet.mutate({ path: { date, exercise_id: open.exercise_id, set_id: setId } })
         }
-        onRemove={() => {
-          if (open) m.removeExercise.mutate({ path: { date, exercise_id: open.exercise_id } });
-          setOpenId(null);
-        }}
         onClose={() => setOpenId(null)}
       />
     </>
