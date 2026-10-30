@@ -9,7 +9,6 @@ type Props = {
   onAdd: (set: SetIn) => void;
   onUpdate: (setId: number, set: SetIn) => void;
   onDelete: (setId: number) => void;
-  onRemove: () => void;
   onClose: () => void;
 };
 
@@ -71,7 +70,6 @@ function SetEditor({
   onAdd,
   onUpdate,
   onDelete,
-  onRemove,
 }: Omit<Props, "exercise" | "onClose"> & { exercise: DayExerciseOut }) {
   const sets = exercise.sets;
   // Поля сразу заполнены последним подходом, чтобы не вводить одно и то же
@@ -189,14 +187,6 @@ function SetEditor({
           Отмена
         </button>
       )}
-      <button
-        type="button"
-        onClick={onRemove}
-        disabled={busy}
-        className="mt-2 h-9 w-full text-sm text-text-muted"
-      >
-        Убрать упражнение
-      </button>
     </>
   );
 }
