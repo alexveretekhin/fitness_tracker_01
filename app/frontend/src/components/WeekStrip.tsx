@@ -23,7 +23,7 @@ type Props = {
 
 // Лента дней с огоньками. На главной выбирает день, в истории раскрывает день в списке.
 // layoutId у числа и огонька нужны календарю истории: при раскрытии
-// они перелетают на свои места в сетке месяца (см. HistoryCalendar).
+// они перелетают на свои места в сетке месяца (см. DayCalendar).
 export function WeekStrip({ selected, onPick }: Props) {
   const today = useAppStore((s) => s.today);
   const visible = visibleDays(today, selected);

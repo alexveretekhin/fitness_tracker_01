@@ -9,14 +9,16 @@ const WEEK = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 const spring = { type: "spring", stiffness: 320, damping: 32 } as const;
 
 type Props = {
-  openDate: string | null; // день, раскрытый в списке истории
+  id: string; // своё имя на каждом экране, чтобы огоньки главной и истории не путались
+  selected: string | null; // подсвеченный день
   onPick: (key: string) => void;
+  anyDay?: boolean; // на главной можно выбрать любой день, в истории только дни с тренировкой
 };
 
-// Календарь на экране истории. Свёрнут: лента с огоньками, как на главной.
+// Календарь на главной и в истории. Свёрнут: лента с огоньками.
 // Потянул риску вниз (или тапнул по ней): лента раскрывается в целый месяц,
 // огоньки перелетают на свои дни и превращаются в оранжевые точки.
-export function HistoryCalendar({ openDate, onPick }: Props) {
+export function DayCalendar({ id, selected, onPick, anyDay = false }: Props) {
   const today = useAppStore((s) => s.today);
   const [expanded, setExpanded] = useState(false);
   const [month, setMonth] = useState(() => shiftMonth(fromDayKey(today), 0));
@@ -43,8 +45,7 @@ export function HistoryCalendar({ openDate, onPick }: Props) {
   const panned = useRef(false);
 
   return (
-    // id группы: огоньки истории не путаются с огоньками ленты на главной
-    <LayoutGroup id="history-calendar">
+    <LayoutGroup id={id}>
       <motion.div
         initial={false}
         animate={{ height }}
@@ -53,9 +54,19 @@ export function HistoryCalendar({ openDate, onPick }: Props) {
       >
         <div ref={content}>
           {expanded ? (
-            <MonthView month={month} openDate={openDate} onMonth={setMonth} onPick={onPick} />
+            <MonthView
+              month={month}
+              selected={selected}
+              anyDay={anyDay}
+              onMonth={setMonth}
+              onPick={(key) => {
+                onPick(key);
+                // На главной выбрали день: сворачиваемся, чтобы был виден список упражнений
+                if (anyDay) toggle(false);
+              }}
+            />
           ) : (
-            <WeekStrip selected={openDate} onPick={onPick} />
+            <WeekStrip selected={selected} onPick={onPick} />
           )}
         </div>
       </motion.div>
@@ -86,13 +97,14 @@ export function HistoryCalendar({ openDate, onPick }: Props) {
 
 type MonthProps = {
   month: Date; // первое число показанного месяца
-  openDate: string | null;
+  selected: string | null;
+  anyDay: boolean;
   onMonth: (month: Date) => void;
   onPick: (key: string) => void;
 };
 
 // Месяц целиком: стрелки, счётчик тренировок и сетка дней с точками
-function MonthView({ month, openDate, onMonth, onPick }: MonthProps) {
+function MonthView({ month, selected, anyDay, onMonth, onPick }: MonthProps) {
   const today = useAppStore((s) => s.today);
   const days = useDays(dayKey(month), dayKey(monthEnd(month)));
   const doneDays = new Set(days.data?.filter((d) => d.done).map((d) => d.date));
@@ -135,7 +147,7 @@ function MonthView({ month, openDate, onMonth, onPick }: MonthProps) {
         {monthDays(month).map((d, i) => {
           const key = dayKey(d);
           const done = doneDays.has(key);
-          const cell = `rounded-md py-1 ${key === openDate ? "bg-surface-strong" : ""}`;
+          const cell = `rounded-md py-1 ${key === selected ? "bg-surface-strong" : ""}`;
           // 1-е число встаёт в колонку своего дня недели, остальные идут следом
           const style = i === 0 ? { gridColumnStart: weekColumn(d) + 1 } : undefined;
           const content = (
@@ -154,14 +166,14 @@ function MonthView({ month, openDate, onMonth, onPick }: MonthProps) {
               />
             </>
           );
-          return done ? (
+          return done || anyDay ? (
             <button
               type="button"
               key={key}
               style={style}
               onClick={() => onPick(key)}
-              aria-label={`Тренировка ${d.toLocaleDateString("ru", { day: "numeric", month: "long" })}`}
-              className={`${cell} active:bg-surface-strong`}
+              aria-label={`${done ? "Тренировка" : "День"} ${d.toLocaleDateString("ru", { day: "numeric", month: "long" })}`}
+              className={`${cell} active:bg-surface-strong ${done ? "" : "text-text-muted"}`}
             >
               {content}
             </button>

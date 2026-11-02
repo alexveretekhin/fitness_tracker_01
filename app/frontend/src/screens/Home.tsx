@@ -1,9 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useDay, useDayMutations } from "../api";
+import { DayCalendar } from "../components/DayCalendar";
 import { SetSheet } from "../components/SetSheet";
 import { EmptyState, ListRow, Panel, QueryState } from "../components/ui";
-import { WeekStrip } from "../components/WeekStrip";
 import { useAppStore } from "../store/useAppStore";
 
 // Главная: лента недели с огоньками и упражнения выбранного дня
@@ -22,7 +22,7 @@ export function Home() {
   return (
     <>
       <Panel>
-        <WeekStrip selected={date} onPick={selectDay} />
+        <DayCalendar id="home-calendar" selected={date} onPick={selectDay} anyDay />
       </Panel>
 
       <Panel className="mt-2.5 flex-1 overflow-y-auto">

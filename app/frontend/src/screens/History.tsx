@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { type DaySummary, useDay, useDays } from "../api";
-import { HistoryCalendar } from "../components/HistoryCalendar";
+import { DayCalendar } from "../components/DayCalendar";
 import { ListRow, Panel, QueryState } from "../components/ui";
 import { addDays, dayKey, fromDayKey, useAppStore } from "../store/useAppStore";
 
@@ -23,8 +23,9 @@ export function History() {
   return (
     <>
       <Panel>
-        <HistoryCalendar
-          openDate={openDate}
+        <DayCalendar
+          id="history-calendar"
+          selected={openDate}
           onPick={(date) => {
             // День без тренировки в календаре ничего не раскрывает
             if (list.some((d) => d.date === date)) setOpenDate(date);
