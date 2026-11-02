@@ -1,7 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
-import { type DaySummary, useDay, useDays } from "../api";
+import { type DaySummary, useDay, useDays, useExerciseCatalog } from "../api";
 import { HistoryCalendar } from "../components/HistoryCalendar";
 import { formatSet } from "../components/SetSheet";
 import { ListRow, Panel, QueryState } from "../components/ui";
@@ -90,39 +89,50 @@ function DayGroup({ day, open, onToggle }: GroupProps) {
 
 // Что было в этот день: упражнения и их подходы. Данные грузятся при раскрытии.
 function DayDetails({ date }: { date: string }) {
-  const navigate = useNavigate();
-  const selectDay = useAppStore((s) => s.selectDay);
   const day = useDay(date);
+  const catalog = useExerciseCatalog().data; // отсюда берём демо-анимацию упражнения
   const exercises = (day.data?.exercises ?? []).filter((e) => e.sets.length > 0);
 
   return (
     <div className="bg-surface px-3 py-2">
       <QueryState isPending={day.isPending} isError={day.isError} />
-      {exercises.map((e) => (
-        <div key={e.exercise_id} className="mb-2">
-          <p>{e.name}</p>
-          <ol className="text-sm text-text-muted">
-            {e.sets.map((s, i) => (
-              <li key={s.id}>
-                <span className="inline-block w-5">{i + 1}</span>
-                {formatSet(s)}
-              </li>
-            ))}
-          </ol>
-        </div>
-      ))}
-      {day.isSuccess && (
-        <button
-          type="button"
-          onClick={() => {
-            selectDay(date);
-            navigate({ to: "/home" });
-          }}
-          className="h-9 text-sm text-accent"
-        >
-          Открыть на главной →
-        </button>
-      )}
+      {exercises.map((e) => {
+        const demo = catalog?.[e.exercise_id]?.demo;
+        return (
+          <div key={e.exercise_id} className="mb-3">
+            <p className="mb-1.5">{e.name}</p>
+            <div className="flex items-start gap-3">
+              {/* Превью техники слева, пока анимаций нет, тут заглушка */}
+              <div className="grid h-20 w-32 shrink-0 place-items-center overflow-hidden rounded-md bg-black text-[10px] text-text-faint">
+                {demo ? (
+                  <video
+                    src={demo}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  "анимация скоро"
+                )}
+              </div>
+              {/* Подходы справа, собраны оранжевой скобкой */}
+              <ol className="border-l-2 border-dot pl-2 text-sm text-text-muted">
+                {e.sets.map((s, i) => (
+                  <li
+                    key={s.id}
+                    className="relative before:absolute before:top-1/2 before:-left-2 before:h-0.5 before:w-1.5 before:bg-dot"
+                  >
+                    <span className="inline-block w-5">{i + 1}</span>
+                    {formatSet(s)}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
