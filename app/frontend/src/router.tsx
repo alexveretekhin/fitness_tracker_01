@@ -15,6 +15,7 @@ import { Exercises } from "./screens/Exercises";
 import { History } from "./screens/History";
 import { Home } from "./screens/Home";
 import { MuscleGroups } from "./screens/MuscleGroups";
+import { Profile } from "./screens/Profile";
 import { Settings } from "./screens/Settings";
 import { Splash } from "./screens/Splash";
 
@@ -26,7 +27,8 @@ import { Splash } from "./screens/Splash";
 //  /muscles               группы мышц      │ внутри «оболочки» shell:
 //  /muscles/$groupId      упражнения       │ у них общее нижнее меню
 //  /history               история          │
-//  /settings              настройки        ┘
+//  /settings              настройки        │
+//  /me                    аватар и уровень ┘
 
 // Корень: рамка «телефона», на десктопе по центру экрана
 function Frame({ children }: { children: ReactNode }) {
@@ -118,10 +120,23 @@ const settingsRoute = createRoute({
   component: Settings,
 });
 
+const profileRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/me",
+  component: Profile,
+});
+
 const routeTree = rootRoute.addChildren([
   splashRoute,
   avatarRoute,
-  shellRoute.addChildren([homeRoute, musclesRoute, exercisesRoute, historyRoute, settingsRoute]),
+  shellRoute.addChildren([
+    homeRoute,
+    musclesRoute,
+    exercisesRoute,
+    historyRoute,
+    settingsRoute,
+    profileRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });

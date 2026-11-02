@@ -1,21 +1,26 @@
 import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useAppStore } from "../store/useAppStore";
 import {
   addExerciseMutation,
   addSetMutation,
   clearDaysMutation,
+  freezeWeekMutation,
   getDayOptions,
   getDayQueryKey,
   getMeOptions,
   getMeQueryKey,
+  getProgressOptions,
+  getProgressQueryKey,
   listDaysOptions,
   listMuscleGroupsOptions,
   removeExerciseMutation,
   removeSetMutation,
   searchExercisesOptions,
+  unfreezeWeekMutation,
   updateMeMutation,
   updateSetMutation,
 } from "./generated/@tanstack/react-query.gen";
-import type { DayOut, ExerciseOut } from "./generated/types.gen";
+import type { DayOut, ExerciseOut, Progress } from "./generated/types.gen";
 
 // Всё общение с бэкендом идёт через этот модуль.
 //
@@ -33,6 +38,7 @@ export type {
   DaySummary,
   ExerciseOut,
   MuscleGroupOut,
+  Progress,
   SetIn,
   SetOut,
 } from "./generated/types.gen";
@@ -95,6 +101,8 @@ export function useDays(from: string, to: string) {
 function onDaySaved(day: DayOut) {
   queryClient.setQueryData(getDayQueryKey({ path: { date: day.date } }), day);
   queryClient.invalidateQueries({ queryKey: [{ _id: "listDays" }] });
+  // Первый подход за день добавляет XP и тренировку в неделю
+  queryClient.invalidateQueries({ queryKey: [{ _id: "getProgress" }] });
 }
 
 export function useDayMutations() {
@@ -113,6 +121,30 @@ export function useClearDays() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [{ _id: "getDay" }] });
       queryClient.invalidateQueries({ queryKey: [{ _id: "listDays" }] });
+      queryClient.invalidateQueries({ queryKey: [{ _id: "getProgress" }] });
     },
   });
+}
+
+// ---------- XP, уровень, недельная серия ----------
+
+// «Сегодня» берём с телефона: сервер не знает часовой пояс пользователя
+export function useProgress() {
+  const today = useAppStore((s) => s.today);
+  return useQuery({ ...getProgressOptions({ query: { today } }), staleTime: 0 });
+}
+
+// Заморозить или разморозить текущую неделю. Сервер отвечает новым прогрессом.
+export function useFreeze() {
+  const today = useAppStore((s) => s.today);
+  const onSuccess = (p: Progress) =>
+    queryClient.setQueryData(getProgressQueryKey({ query: { today } }), p);
+  const freeze = useMutation({ ...freezeWeekMutation(), onSuccess });
+  const unfreeze = useMutation({ ...unfreezeWeekMutation(), onSuccess });
+  return {
+    freeze: () => freeze.mutate({ query: { today } }),
+    unfreeze: () => unfreeze.mutate({ query: { today } }),
+    isPending: freeze.isPending || unfreeze.isPending,
+    error: freeze.error ?? unfreeze.error,
+  };
 }

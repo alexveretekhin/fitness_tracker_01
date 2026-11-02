@@ -213,7 +213,7 @@
           "days"
         ],
         "summary": "Clear Days",
-        "description": "Удалить все тренировки пользователя (кнопка Reset data в настройках).",
+        "description": "Удалить все тренировки и заморозки пользователя (кнопка Reset data в настройках).",
         "operationId": "clear_days",
         "responses": {
           "204": {
@@ -625,6 +625,141 @@
           }
         }
       }
+    },
+    "/api/me/progress": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Get Progress",
+        "operationId": "get_progress",
+        "parameters": [
+          {
+            "name": "today",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Сегодняшняя дата у пользователя",
+              "title": "Today"
+            },
+            "description": "Сегодняшняя дата у пользователя"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/freeze": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Freeze Week",
+        "description": "Заморозить текущую неделю.",
+        "operationId": "freeze_week",
+        "parameters": [
+          {
+            "name": "today",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Сегодняшняя дата у пользователя",
+              "title": "Today"
+            },
+            "description": "Сегодняшняя дата у пользователя"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Unfreeze Week",
+        "description": "Отменить заморозку текущей недели (нажал случайно).",
+        "operationId": "unfreeze_week",
+        "parameters": [
+          {
+            "name": "today",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Сегодняшняя дата у пользователя",
+              "title": "Today"
+            },
+            "description": "Сегодняшняя дата у пользователя"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -844,6 +979,74 @@
           "name"
         ],
         "title": "MuscleGroupOut"
+      },
+      "Progress": {
+        "properties": {
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "level_from": {
+            "type": "integer",
+            "title": "Level From"
+          },
+          "level_to": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level To"
+          },
+          "levels": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Levels"
+          },
+          "streak_weeks": {
+            "type": "integer",
+            "title": "Streak Weeks"
+          },
+          "week_workouts": {
+            "type": "integer",
+            "title": "Week Workouts"
+          },
+          "week_goal": {
+            "type": "integer",
+            "title": "Week Goal"
+          },
+          "week_frozen": {
+            "type": "boolean",
+            "title": "Week Frozen"
+          },
+          "freezes_left": {
+            "type": "integer",
+            "title": "Freezes Left"
+          }
+        },
+        "type": "object",
+        "required": [
+          "xp",
+          "level",
+          "level_from",
+          "level_to",
+          "levels",
+          "streak_weeks",
+          "week_workouts",
+          "week_goal",
+          "week_frozen",
+          "freezes_left"
+        ],
+        "title": "Progress"
       },
       "SetIn": {
         "properties": {

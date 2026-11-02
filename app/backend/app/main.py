@@ -8,7 +8,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from app.api import catalog, days, me
+from app.api import catalog, days, me, progress
 from app.config import settings
 
 
@@ -44,4 +44,5 @@ api = APIRouter(prefix="/api")
 api.include_router(catalog.router)
 api.include_router(days.router)
 api.include_router(me.router)
+api.include_router(progress.router)
 app.include_router(api)

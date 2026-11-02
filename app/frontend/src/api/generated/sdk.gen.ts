@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetMeData, GetMeResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, FreezeWeekData, FreezeWeekErrors, FreezeWeekResponses, GetDayData, GetDayErrors, GetDayResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressErrors, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UnfreezeWeekData, UnfreezeWeekErrors, UnfreezeWeekResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -47,7 +47,7 @@ export const searchExercises = <ThrowOnError extends boolean = false>(options?: 
 /**
  * Clear Days
  *
- * Удалить все тренировки пользователя (кнопка Reset data в настройках).
+ * Удалить все тренировки и заморозки пользователя (кнопка Reset data в настройках).
  */
 export const clearDays = <ThrowOnError extends boolean = false>(options?: Options<ClearDaysData, ThrowOnError>): RequestResult<ClearDaysResponses, unknown, ThrowOnError> => (options?.client ?? client).delete<ClearDaysResponses, unknown, ThrowOnError>({ url: '/api/days', ...options });
 
@@ -133,3 +133,22 @@ export const updateMe = <ThrowOnError extends boolean = false>(options: Options<
         ...options.headers
     }
 });
+
+/**
+ * Get Progress
+ */
+export const getProgress = <ThrowOnError extends boolean = false>(options: Options<GetProgressData, ThrowOnError>): RequestResult<GetProgressResponses, GetProgressErrors, ThrowOnError> => (options.client ?? client).get<GetProgressResponses, GetProgressErrors, ThrowOnError>({ url: '/api/me/progress', ...options });
+
+/**
+ * Unfreeze Week
+ *
+ * Отменить заморозку текущей недели (нажал случайно).
+ */
+export const unfreezeWeek = <ThrowOnError extends boolean = false>(options: Options<UnfreezeWeekData, ThrowOnError>): RequestResult<UnfreezeWeekResponses, UnfreezeWeekErrors, ThrowOnError> => (options.client ?? client).delete<UnfreezeWeekResponses, UnfreezeWeekErrors, ThrowOnError>({ url: '/api/me/freeze', ...options });
+
+/**
+ * Freeze Week
+ *
+ * Заморозить текущую неделю.
+ */
+export const freezeWeek = <ThrowOnError extends boolean = false>(options: Options<FreezeWeekData, ThrowOnError>): RequestResult<FreezeWeekResponses, FreezeWeekErrors, ThrowOnError> => (options.client ?? client).post<FreezeWeekResponses, FreezeWeekErrors, ThrowOnError>({ url: '/api/me/freeze', ...options });

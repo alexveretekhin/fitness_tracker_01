@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, addSet, clearDays, getDay, getMe, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetMeData, GetMeResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
+import { addExercise, addSet, clearDays, freezeWeek, getDay, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, unfreezeWeek, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, FreezeWeekData, FreezeWeekError, FreezeWeekResponse, GetDayData, GetDayError, GetDayResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressError, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UnfreezeWeekData, UnfreezeWeekError, UnfreezeWeekResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -120,7 +120,7 @@ export const searchExercisesOptions = (options?: Options<SearchExercisesData>) =
 /**
  * Clear Days
  *
- * Удалить все тренировки пользователя (кнопка Reset data в настройках).
+ * Удалить все тренировки и заморозки пользователя (кнопка Reset data в настройках).
  */
 export const clearDaysMutation = (options?: Partial<Options<ClearDaysData>>): UseMutationOptions<ClearDaysResponse, DefaultError, Options<ClearDaysData>> => {
     const mutationOptions: UseMutationOptions<ClearDaysResponse, DefaultError, Options<ClearDaysData>> = {
@@ -292,6 +292,62 @@ export const updateMeMutation = (options?: Partial<Options<UpdateMeData>>): UseM
     const mutationOptions: UseMutationOptions<UpdateMeResponse, UpdateMeError, Options<UpdateMeData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateMe({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getProgressQueryKey = (options: Options<GetProgressData>) => createQueryKey('getProgress', options);
+
+/**
+ * Get Progress
+ */
+export const getProgressOptions = (options: Options<GetProgressData>) => queryOptions<GetProgressResponse, GetProgressError, GetProgressResponse, ReturnType<typeof getProgressQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getProgress({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getProgressQueryKey(options)
+});
+
+/**
+ * Unfreeze Week
+ *
+ * Отменить заморозку текущей недели (нажал случайно).
+ */
+export const unfreezeWeekMutation = (options?: Partial<Options<UnfreezeWeekData>>): UseMutationOptions<UnfreezeWeekResponse, UnfreezeWeekError, Options<UnfreezeWeekData>> => {
+    const mutationOptions: UseMutationOptions<UnfreezeWeekResponse, UnfreezeWeekError, Options<UnfreezeWeekData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await unfreezeWeek({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Freeze Week
+ *
+ * Заморозить текущую неделю.
+ */
+export const freezeWeekMutation = (options?: Partial<Options<FreezeWeekData>>): UseMutationOptions<FreezeWeekResponse, FreezeWeekError, Options<FreezeWeekData>> => {
+    const mutationOptions: UseMutationOptions<FreezeWeekResponse, FreezeWeekError, Options<FreezeWeekData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await freezeWeek({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

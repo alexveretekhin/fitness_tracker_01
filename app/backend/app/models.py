@@ -8,6 +8,8 @@
                                    1
                                    │
                                    * WorkoutSet (один подход: вес × повторы)
+
+    User 1──* WeekFreeze (замороженные недели серии)
 """
 
 import datetime as dt
@@ -88,3 +90,13 @@ class WorkoutSet(SQLModel, table=True):
     weight: float = 0
     reps: int = 0
     created_at: dt.datetime = Field(default_factory=_now)
+
+
+class WeekFreeze(SQLModel, table=True):
+    """Замороженная неделя: не рвёт серию, хотя тренировок меньше трёх (болезнь, отпуск)."""
+
+    __table_args__ = (UniqueConstraint("user_id", "week_start"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    week_start: dt.date  # понедельник этой недели

@@ -4,6 +4,7 @@ import { useDay, useDayMutations } from "../api";
 import { DayCalendar } from "../components/DayCalendar";
 import { SetSheet } from "../components/SetSheet";
 import { EmptyState, ListRow, Panel, QueryState } from "../components/ui";
+import { XpBar } from "../components/XpBar";
 import { useAppStore } from "../store/useAppStore";
 
 // Главная: лента недели с огоньками и упражнения выбранного дня
@@ -23,6 +24,7 @@ export function Home() {
     <>
       <Panel>
         <DayCalendar id="home-calendar" selected={date} onPick={selectDay} anyDay />
+        <XpBar />
       </Panel>
 
       <Panel className="mt-2.5 flex-1 overflow-y-auto">

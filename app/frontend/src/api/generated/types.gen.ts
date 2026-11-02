@@ -146,6 +146,52 @@ export type MuscleGroupOut = {
 };
 
 /**
+ * Progress
+ */
+export type Progress = {
+    /**
+     * Xp
+     */
+    xp: number;
+    /**
+     * Level
+     */
+    level: number;
+    /**
+     * Level From
+     */
+    level_from: number;
+    /**
+     * Level To
+     */
+    level_to: number | null;
+    /**
+     * Levels
+     */
+    levels: Array<number>;
+    /**
+     * Streak Weeks
+     */
+    streak_weeks: number;
+    /**
+     * Week Workouts
+     */
+    week_workouts: number;
+    /**
+     * Week Goal
+     */
+    week_goal: number;
+    /**
+     * Week Frozen
+     */
+    week_frozen: boolean;
+    /**
+     * Freezes Left
+     */
+    freezes_left: number;
+};
+
+/**
  * SetIn
  *
  * Один подход из карточки. Вес 0 = упражнение с собственным весом.
@@ -605,3 +651,99 @@ export type UpdateMeResponses = {
 };
 
 export type UpdateMeResponse = UpdateMeResponses[keyof UpdateMeResponses];
+
+export type GetProgressData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Today
+         *
+         * Сегодняшняя дата у пользователя
+         */
+        today: string;
+    };
+    url: '/api/me/progress';
+};
+
+export type GetProgressErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetProgressError = GetProgressErrors[keyof GetProgressErrors];
+
+export type GetProgressResponses = {
+    /**
+     * Successful Response
+     */
+    200: Progress;
+};
+
+export type GetProgressResponse = GetProgressResponses[keyof GetProgressResponses];
+
+export type UnfreezeWeekData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Today
+         *
+         * Сегодняшняя дата у пользователя
+         */
+        today: string;
+    };
+    url: '/api/me/freeze';
+};
+
+export type UnfreezeWeekErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnfreezeWeekError = UnfreezeWeekErrors[keyof UnfreezeWeekErrors];
+
+export type UnfreezeWeekResponses = {
+    /**
+     * Successful Response
+     */
+    200: Progress;
+};
+
+export type UnfreezeWeekResponse = UnfreezeWeekResponses[keyof UnfreezeWeekResponses];
+
+export type FreezeWeekData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Today
+         *
+         * Сегодняшняя дата у пользователя
+         */
+        today: string;
+    };
+    url: '/api/me/freeze';
+};
+
+export type FreezeWeekErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FreezeWeekError = FreezeWeekErrors[keyof FreezeWeekErrors];
+
+export type FreezeWeekResponses = {
+    /**
+     * Successful Response
+     */
+    200: Progress;
+};
+
+export type FreezeWeekResponse = FreezeWeekResponses[keyof FreezeWeekResponses];
