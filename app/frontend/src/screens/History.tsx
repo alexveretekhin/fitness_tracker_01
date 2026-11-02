@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
-import { type DaySummary, useDay, useDays, useExerciseCatalog } from "../api";
+import { type DaySummary, useDay, useDays } from "../api";
 import { HistoryCalendar } from "../components/HistoryCalendar";
-import { formatSet } from "../components/SetSheet";
 import { ListRow, Panel, QueryState } from "../components/ui";
 import { addDays, dayKey, fromDayKey, useAppStore } from "../store/useAppStore";
 
@@ -87,49 +86,50 @@ function DayGroup({ day, open, onToggle }: GroupProps) {
   );
 }
 
-// Что было в этот день: упражнения и их подходы. Данные грузятся при раскрытии.
+// Что было в этот день: список упражнений. Подходы упражнения раскрываются по тапу.
 function DayDetails({ date }: { date: string }) {
   const day = useDay(date);
-  const catalog = useExerciseCatalog().data; // отсюда берём демо-анимацию упражнения
   const exercises = (day.data?.exercises ?? []).filter((e) => e.sets.length > 0);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <div className="bg-surface px-3 py-2">
+    <div className="bg-surface px-3 py-1">
       <QueryState isPending={day.isPending} isError={day.isError} />
       {exercises.map((e) => {
-        const demo = catalog?.[e.exercise_id]?.demo;
+        const open = e.exercise_id === openId;
         return (
-          <div key={e.exercise_id} className="mb-3">
-            <p className="mb-1.5">{e.name}</p>
-            <div className="flex items-start gap-3">
-              {/* Превью техники слева, пока анимаций нет, тут заглушка */}
-              <div className="grid h-20 w-32 shrink-0 place-items-center overflow-hidden rounded-md bg-black text-[10px] text-text-faint">
-                {demo ? (
-                  <video
-                    src={demo}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  "анимация скоро"
-                )}
-              </div>
-              {/* Подходы справа, собраны оранжевой скобкой */}
-              <ol className="border-l-2 border-dot pl-2 text-sm text-text-muted">
-                {e.sets.map((s, i) => (
-                  <li
-                    key={s.id}
-                    className="relative before:absolute before:top-1/2 before:-left-2 before:h-0.5 before:w-1.5 before:bg-dot"
-                  >
-                    <span className="inline-block w-5">{i + 1}</span>
-                    {formatSet(s)}
-                  </li>
-                ))}
-              </ol>
-            </div>
+          <div key={e.exercise_id}>
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpenId(open ? null : e.exercise_id)}
+              className="flex min-h-tap w-full items-center gap-2 text-left"
+            >
+              <span className={`text-text-muted transition ${open ? "rotate-90" : ""}`}>›</span>
+              <span className="flex-1">{e.name}</span>
+              <span className="text-xs text-text-muted">{e.sets.length} подх.</span>
+            </button>
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.ol
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="mb-2 ml-1 overflow-hidden border-l-2 border-dot pl-2 text-sm text-text-muted"
+                >
+                  {e.sets.map((s, i) => (
+                    <li
+                      key={s.id}
+                      className="relative before:absolute before:top-1/2 before:-left-2 before:h-0.5 before:w-1.5 before:bg-dot"
+                    >
+                      <span className="inline-block w-5">{i + 1}</span>
+                      {/* В истории вес пишем всегда, даже 0, чтобы было видно, с чем делал */}
+                      {s.weight} кг × {s.reps} повт.
+                    </li>
+                  ))}
+                </motion.ol>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}
