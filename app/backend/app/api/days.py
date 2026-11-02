@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlmodel import col, delete, func, select
 
 from app.deps import CurrentUser, SessionDep
-from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
+from app.models import DayExercise, Exercise, WeekFreeze, WorkoutDay, WorkoutSet
 from app.schemas import AddExerciseIn, DayExerciseOut, DayOut, DaySummary, SetIn, SetOut
 
 router = APIRouter(prefix="/days", tags=["days"])
@@ -112,12 +112,13 @@ def list_days(
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
 def clear_days(session: SessionDep, user: CurrentUser):
-    """Удалить все тренировки пользователя (кнопка Reset data в настройках)."""
+    """Удалить все тренировки и заморозки пользователя (кнопка Reset data в настройках)."""
     day_ids = select(WorkoutDay.id).where(WorkoutDay.user_id == user.id)
     entry_ids = select(DayExercise.id).where(col(DayExercise.day_id).in_(day_ids))
     session.exec(delete(WorkoutSet).where(col(WorkoutSet.day_exercise_id).in_(entry_ids)))
     session.exec(delete(DayExercise).where(col(DayExercise.day_id).in_(day_ids)))
     session.exec(delete(WorkoutDay).where(WorkoutDay.user_id == user.id))
+    session.exec(delete(WeekFreeze).where(WeekFreeze.user_id == user.id))
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
