@@ -17,7 +17,7 @@ type Props = {
 
 // Календарь на главной и в истории. Свёрнут: лента с огоньками.
 // Потянул риску вниз (или тапнул по ней): лента раскрывается в целый месяц,
-// огоньки перелетают на свои дни и превращаются в оранжевые точки.
+// огоньки перелетают на свои дни и превращаются в точки цвета огонька.
 export function DayCalendar({ id, selected, onPick, anyDay = false }: Props) {
   const today = useAppStore((s) => s.today);
   const [expanded, setExpanded] = useState(false);
