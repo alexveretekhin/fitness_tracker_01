@@ -1,16 +1,27 @@
-"""Статистика упражнения по дням: из неё рисуется график в истории."""
+"""Статистика упражнения по дням: из неё рисуется график в истории.
+
+Сила считается как расчётный максимум на 1 раз (e1RM) по формуле Эпли:
+вес × (1 + повторы / 30). Так подходы 40 кг × 1 и 30 кг × 8 можно сравнить.
+Формула точна примерно до 10–12 повторов (ADR 0011).
+"""
 
 import datetime as dt
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
-from sqlmodel import col, func, select
+from sqlmodel import case, col, func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
 from app.schemas import ExerciseStat
 
 router = APIRouter(tags=["stats"])
+
+# Расчётный максимум одного подхода. На 1 повтор это сам вес.
+E1RM = case(
+    (WorkoutSet.reps == 1, WorkoutSet.weight),
+    else_=WorkoutSet.weight * (1 + WorkoutSet.reps / 30.0),
+)
 
 
 @router.get("/exercises/{exercise_id}/stats", response_model=list[ExerciseStat])
@@ -31,6 +42,7 @@ def get_exercise_stats(
         select(
             WorkoutDay.date,
             func.max(WorkoutSet.weight),
+            func.max(E1RM),
             func.max(WorkoutSet.reps),
             func.sum(WorkoutSet.weight * WorkoutSet.reps),
             func.sum(WorkoutSet.reps),
@@ -51,10 +63,11 @@ def get_exercise_stats(
         ExerciseStat(
             date=date,
             best_weight=best,
+            best_e1rm=round(e1rm, 1),
             max_reps=reps,
             volume=volume,
             total_reps=total,
             sets=n,
         )
-        for date, best, reps, volume, total, n in rows
+        for date, best, e1rm, reps, volume, total, n in rows
     ]

@@ -872,6 +872,10 @@
             "type": "number",
             "title": "Best Weight"
           },
+          "best_e1rm": {
+            "type": "number",
+            "title": "Best E1Rm"
+          },
           "max_reps": {
             "type": "integer",
             "title": "Max Reps"
@@ -893,6 +897,7 @@
         "required": [
           "date",
           "best_weight",
+          "best_e1rm",
           "max_reps",
           "volume",
           "total_reps",

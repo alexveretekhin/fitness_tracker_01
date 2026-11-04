@@ -2,8 +2,17 @@ import { describe, expect, it } from "vitest";
 import type { ExerciseStat } from "../api/generated/types.gen";
 import { buildSeries, formatValue, since } from "./stats";
 
-function stat(date: string, best_weight: number, volume: number, max_reps = 10, total_reps = 30) {
-  return { date, best_weight, volume, max_reps, total_reps, sets: 3 } satisfies ExerciseStat;
+function stat(date: string, best_e1rm: number, volume: number, max_reps = 10, total_reps = 30) {
+  const best_weight = best_e1rm; // для тестов не важно
+  return {
+    date,
+    best_weight,
+    best_e1rm,
+    volume,
+    max_reps,
+    total_reps,
+    sets: 3,
+  } satisfies ExerciseStat;
 }
 
 const TODAY = "2026-11-04";
@@ -12,11 +21,12 @@ describe("buildSeries", () => {
   it("месяц: точки за последние 30 дней, место по дате", () => {
     const s = buildSeries(
       [stat("2026-09-01", 50, 500), stat("2026-10-06", 60, 600), stat("2026-11-04", 70, 700)],
-      "weight",
+      "strength",
       "month",
       TODAY,
     );
     expect(s.unit).toBe("кг");
+    expect(s.approx).toBe(true);
     expect(s.points.map((p) => p.value)).toEqual([60, 70]); // сентябрь не попал
     expect(s.points[0].x).toBe(0); // 6 октября = первый из 30 дней
     expect(s.points[1].x).toBe(1);
@@ -39,7 +49,7 @@ describe("buildSeries", () => {
   });
 
   it("без веса: повторы вместо килограммов", () => {
-    const s = buildSeries([stat("2026-11-02", 0, 0, 12, 30)], "weight", "month", TODAY);
+    const s = buildSeries([stat("2026-11-02", 0, 0, 12, 30)], "strength", "month", TODAY);
     expect(s.unit).toBe("повт.");
     expect(s.points[0].value).toBe(12);
     expect(

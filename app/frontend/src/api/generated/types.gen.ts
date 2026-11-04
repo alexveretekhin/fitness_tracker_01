@@ -114,6 +114,10 @@ export type ExerciseStat = {
      */
     best_weight: number;
     /**
+     * Best E1Rm
+     */
+    best_e1rm: number;
+    /**
      * Max Reps
      */
     max_reps: number;

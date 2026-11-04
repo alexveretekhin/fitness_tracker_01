@@ -4,7 +4,7 @@ import { formatValue, type Series } from "../lib/stats";
 
 // Линейный график прогресса, нарисован на SVG вручную (ADR 0010).
 //
-//   72,5 кг · 4 ноя          ← выбранная точка (по умолчанию последняя)
+//   ≈ 72,5 кг · 4 ноя        ← выбранная точка (по умолчанию последняя)
 //   ┊ 75 ─────────────────
 //   ┊ 65 ──────●──────●───   оранжевая линия, под ней прозрачная заливка
 //   ┊ 55 ──●──────────────   серые линии сетки и подписи
@@ -17,7 +17,7 @@ const H = 170;
 const PAD = { left: 34, right: 10, top: 12, bottom: 22 };
 
 export function ProgressChart({ series }: { series: Series }) {
-  const { points, unit, ticks } = series;
+  const { points, unit, approx, ticks } = series;
   const gradient = useId();
   const [picked, setPicked] = useState<number | null>(null);
   const selected = points[picked ?? points.length - 1];
@@ -44,7 +44,10 @@ export function ProgressChart({ series }: { series: Series }) {
   return (
     <div>
       <p className="mb-1 h-6 text-sm">
-        <span className="text-lg text-accent">{formatValue(selected.value)}</span>{" "}
+        <span className="text-lg text-accent">
+          {approx && "≈ "}
+          {formatValue(selected.value)}
+        </span>{" "}
         <span className="text-text-muted">
           {unit} · {selected.label}
         </span>
