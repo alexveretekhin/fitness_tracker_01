@@ -9,15 +9,17 @@ import { ListRow, Panel, PlayButton, QueryState, SearchField } from "../componen
 import { useAppStore } from "../store/useAppStore";
 
 // Упражнения группы. Тап по названию: упражнение улетает на главную,
-// экран при этом не меняется. Play раскрывает демо техники.
+// экран при этом не меняется. Выбранное помечено оранжевой галочкой,
+// крестик × справа убирает его из дня. Play раскрывает демо техники.
 export function Exercises() {
   const { groupId } = useParams({ from: "/shell/muscles/$groupId" });
   const group = useMuscleGroups().data?.find((g) => g.id === groupId);
   const exercisesQuery = useQuery(listGroupExercisesOptions({ path: { group_id: groupId } }));
   const date = useAppStore((s) => s.selectedDay);
   const bumpRound = useAppStore((s) => s.bumpRound);
+  const unbumpRound = useAppStore((s) => s.unbumpRound);
   const picked = useDay(date).data?.exercises ?? [];
-  const { addExercise } = useDayMutations();
+  const { addExercise, removeExercise } = useDayMutations();
   // Упражнения, которые уже летят к «+»: второй тап по ним ничего не делает
   const [flying, setFlying] = useState<Set<string>>(new Set());
   const { fly } = useFly();
@@ -34,7 +36,8 @@ export function Exercises() {
       <SearchField value={q} onChange={setQ} />
       <QueryState isPending={exercisesQuery.isPending} isError={exercisesQuery.isError} />
       {list.map((e) => {
-        const already = flying.has(e.id) || picked.some((p) => p.exercise_id === e.id);
+        const entry = picked.find((p) => p.exercise_id === e.id);
+        const already = flying.has(e.id) || entry !== undefined;
         return (
           <div key={e.id}>
             <ListRow
@@ -58,14 +61,37 @@ export function Exercises() {
                 );
               }}
               right={
-                <PlayButton
-                  active={demoId === e.id}
-                  onClick={() => setDemoId(demoId === e.id ? null : e.id)}
-                />
+                <>
+                  {/* Крестик только у уже добавленного, пока оно летит, отменять нечего */}
+                  {entry && !flying.has(e.id) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Подходы удалятся вместе с упражнением, поэтому переспрашиваем
+                        const n = entry.sets.length;
+                        if (n > 0 && !confirm(`Убрать «${e.name}» вместе с подходами (${n})?`))
+                          return;
+                        removeExercise.mutate(
+                          { path: { date, exercise_id: e.id } },
+                          { onSuccess: unbumpRound },
+                        );
+                      }}
+                      disabled={removeExercise.isPending}
+                      aria-label={`Убрать ${e.name}`}
+                      className="grid size-tap place-items-center text-xl text-text-muted active:text-accent"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <PlayButton
+                    active={demoId === e.id}
+                    onClick={() => setDemoId(demoId === e.id ? null : e.id)}
+                  />
+                </>
               }
             >
               {e.name}
-              {already && " ✓"}
+              {already && <span className="text-accent"> ✓</span>}
             </ListRow>
             <AnimatePresence>
               {demoId === e.id && (

@@ -32,6 +32,7 @@ type AppState = {
 
   selectDay: (key: string) => void;
   bumpRound: () => void;
+  unbumpRound: () => void;
   resetRound: () => void;
 };
 
@@ -42,6 +43,8 @@ export const useAppStore = create<AppState>()((set) => ({
 
   selectDay: (key) => set({ selectedDay: key }),
   bumpRound: () => set((s) => ({ addedThisRound: s.addedThisRound + 1 })),
+  // Упражнение отменили крестиком в списке: счётчик уменьшается, но не ниже нуля
+  unbumpRound: () => set((s) => ({ addedThisRound: Math.max(0, s.addedThisRound - 1) })),
   resetRound: () => set({ addedThisRound: 0 }),
 }));
 
