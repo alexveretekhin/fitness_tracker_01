@@ -1,15 +1,14 @@
-"""Рекорды: таблица лучших весов по повторам и отметка рекордных подходов.
+"""Рекорд упражнения: одна рекордная тренировка за всё время.
 
-Правила (решили с автором 2026-11-04, ADR 0012):
+Правила (решили с автором 2026-11-04, ADR 0013, заменяет таблицу из ADR 0012):
 
-- Таблица: для 1, 3, 5, 8 и 10 повторов лучший вес среди подходов,
-  где повторов было столько же или больше. 30 кг × 5 годится и для «3 повт.».
-- Рекордный подход: лучший подход дня в упражнении, который сильнее всех
-  прошлых дней. Сила = расчётный максимум e1RM (как на графике, ADR 0011).
-  Сравниваем только с прошлыми днями: разминка 20 кг и потом 30 кг в тот же
-  день не дают двух рекордов.
-- Упражнения без веса (вес 0) сравниваем по повторам.
-- Самый первый день упражнения не рекорд: побивать ещё нечего.
+- У каждого упражнения один рекорд: лучший подход за всё время. День, где он
+  сделан, и есть рекордная тренировка. Кубок стоит только на нём.
+- Сила подхода = расчётный максимум e1RM (как на графике, ADR 0011).
+  Если в упражнении есть подходы с весом, сравниваем только их.
+  Упражнения без веса (вес 0) сравниваем по повторам.
+- При равенстве рекорд остаётся за первым подходом: его надо именно побить.
+- Пока упражнение делал только в один день, рекорда нет: побивать ещё нечего.
 
 Всё считается на лету из подходов, в базе ничего отдельно не хранится.
 """
@@ -21,8 +20,6 @@ from dataclasses import dataclass
 from sqlmodel import Session, col, select
 
 from app.models import DayExercise, WorkoutDay, WorkoutSet
-
-REP_TARGETS = (1, 3, 5, 8, 10)  # строки таблицы рекордов
 
 
 def e1rm(weight: float, reps: int) -> float:
@@ -41,64 +38,32 @@ class SetRow:
     reps: int
 
 
-def _score(s: SetRow) -> float:
+def strength(s: SetRow) -> float:
+    """Сила подхода: e1RM для подходов с весом, повторы для подходов без веса."""
     return e1rm(s.weight, s.reps) if s.weight > 0 else s.reps
 
 
-def record_set_ids(rows: Iterable[SetRow]) -> set[int]:
-    """id рекордных подходов. rows идут по дате, внутри дня по порядку подходов."""
-    best: dict[tuple[str, bool], float] = {}  # (упражнение, с весом?) → лучшее до этого дня
-    records: set[int] = set()
-    day_best: dict[tuple[str, bool], SetRow] = {}
-    current: dt.date | None = None
+def _beats(s: SetRow, old: SetRow) -> bool:
+    if (s.weight > 0) != (old.weight > 0):
+        return s.weight > 0  # подход с весом важнее подхода без веса
+    return strength(s) > strength(old) + 1e-9  # строго больше: равенство не рекорд
 
-    def close_day():
-        for key, s in day_best.items():
-            score = _score(s)
-            if key in best and score > best[key] + 1e-9:
-                records.add(s.id)
-            best[key] = max(best.get(key, score), score)
-        day_best.clear()
 
+def records(rows: Iterable[SetRow]) -> dict[str, SetRow]:
+    """Рекордный подход каждого упражнения. rows идут по порядку выполнения."""
+    best: dict[str, SetRow] = {}
+    days: dict[str, set[dt.date]] = {}
     for s in rows:
-        if s.date != current:
-            close_day()
-            current = s.date
-        key = (s.exercise_id, s.weight > 0)
-        # Строго больше: при равенстве рекордом остаётся первый такой подход дня
-        if key not in day_best or _score(s) > _score(day_best[key]):
-            day_best[key] = s
-    close_day()
-    return records
+        days.setdefault(s.exercise_id, set()).add(s.date)
+        old = best.get(s.exercise_id)
+        if old is None or _beats(s, old):
+            best[s.exercise_id] = s
+    return {ex: s for ex, s in best.items() if len(days[ex]) > 1}
 
 
-@dataclass
-class Record:
-    reps: int
-    weight: float
-    date: dt.date
-
-
-def rep_records(rows: Iterable[SetRow]) -> tuple[list[Record], Record | None]:
-    """Таблица рекордов одного упражнения и рекорд повторов без веса.
-
-    При равном весе берём самую раннюю дату: тогда рекорд и поставлен.
-    """
-    rows = list(rows)
-    table = []
-    for target in REP_TARGETS:
-        best: SetRow | None = None
-        for s in rows:
-            if s.weight > 0 and s.reps >= target and (best is None or s.weight > best.weight):
-                best = s
-        if best:
-            table.append(Record(reps=target, weight=best.weight, date=best.date))
-    bodyweight: SetRow | None = None
-    for s in rows:
-        if s.weight == 0 and (bodyweight is None or s.reps > bodyweight.reps):
-            bodyweight = s
-    bw = Record(reps=bodyweight.reps, weight=0, date=bodyweight.date) if bodyweight else None
-    return table, bw
+def record_ids(rows: Iterable[SetRow]) -> set[int]:
+    """id рекордных подходов всех упражнений: на них стоит кубок."""
+    return {s.id for s in records(rows).values()}
 
 
 def load_sets(session: Session, user_id: int, exercise_id: str | None = None) -> list[SetRow]:

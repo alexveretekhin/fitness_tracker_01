@@ -12,7 +12,7 @@ from sqlmodel import col, delete, func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
-from app.records import load_sets, record_set_ids
+from app.records import load_sets, record_ids
 from app.schemas import AddExerciseIn, DayExerciseOut, DayOut, DaySummary, SetIn, SetOut
 
 router = APIRouter(prefix="/days", tags=["days"])
@@ -50,7 +50,7 @@ def _day_out(session: SessionDep, date: dt.date, day: WorkoutDay | None) -> DayO
         .where(DayExercise.day_id == day.id)
         .order_by(DayExercise.position)
     ).all()
-    records = record_set_ids(load_sets(session, day.user_id))
+    records = record_ids(load_sets(session, day.user_id))
     sets = _sets_of(session, [de.id for de, _ in rows], records)
     items = [
         DayExerciseOut(exercise_id=de.exercise_id, name=ex.name, sets=sets.get(de.id, []))
@@ -111,9 +111,9 @@ def list_days(
         if n_sets:
             day.done = True
             day.done_exercises.append(name)
-    # Кубки: сколько рекордных подходов в каждом дне
+    # Кубки: сколько упражнений поставили рекорд в каждом дне
     all_sets = load_sets(session, user.id)
-    records = record_set_ids(all_sets)
+    records = record_ids(all_sets)
     for s in all_sets:
         if s.id in records and s.date in days:
             days[s.date].records += 1

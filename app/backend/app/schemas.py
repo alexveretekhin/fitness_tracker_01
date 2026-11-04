@@ -34,7 +34,7 @@ class SetOut(BaseModel):
     id: int
     weight: float
     reps: int
-    record: bool = False  # лучший подход дня, который побил все прошлые дни (кубок)
+    record: bool = False  # рекордный подход упражнения за всё время (кубок)
 
 
 class DayExerciseOut(BaseModel):
@@ -54,7 +54,7 @@ class DaySummary(BaseModel):
     done: bool
     count: int  # сколько упражнений добавлено в день
     done_exercises: list[str]  # названия упражнений, где записан хотя бы один подход
-    records: int = 0  # сколько рекордных подходов в этот день
+    records: int = 0  # сколько упражнений поставили рекорд в этот день
 
 
 class AddExerciseIn(BaseModel):
@@ -83,14 +83,10 @@ class ExerciseStat(BaseModel):
     sets: int
 
 
-class RepRecord(BaseModel):
-    """Строка таблицы рекордов: лучший вес на столько повторов и когда он был."""
+class RecordOut(BaseModel):
+    """Рекорд упражнения: лучший подход за всё время и день, когда он сделан."""
 
+    date: dt.date  # рекордная тренировка
+    weight: float  # 0 = упражнение без веса
     reps: int
-    weight: float  # 0 = рекорд повторов без веса
-    date: dt.date
-
-
-class ExerciseRecords(BaseModel):
-    by_reps: list[RepRecord]  # строки 1, 3, 5, 8, 10 повторов; без подходов строки нет
-    bodyweight: RepRecord | None  # больше всего повторов без веса
+    strength: float  # сила подхода: e1RM в кг, а без веса число повторов

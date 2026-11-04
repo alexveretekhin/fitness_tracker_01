@@ -104,17 +104,6 @@ export type ExerciseOut = {
 };
 
 /**
- * ExerciseRecords
- */
-export type ExerciseRecords = {
-    /**
-     * By Reps
-     */
-    by_reps: Array<RepRecord>;
-    bodyweight: RepRecord | null;
-};
-
-/**
  * ExerciseStat
  *
  * Итог одного упражнения за один день, точка на графике в истории.
@@ -223,23 +212,27 @@ export type Progress = {
 };
 
 /**
- * RepRecord
+ * RecordOut
  *
- * Строка таблицы рекордов: лучший вес на столько повторов и когда он был.
+ * Рекорд упражнения: лучший подход за всё время и день, когда он сделан.
  */
-export type RepRecord = {
+export type RecordOut = {
     /**
-     * Reps
+     * Date
      */
-    reps: number;
+    date: string;
     /**
      * Weight
      */
     weight: number;
     /**
-     * Date
+     * Reps
      */
-    date: string;
+    reps: number;
+    /**
+     * Strength
+     */
+    strength: number;
 };
 
 /**
@@ -764,7 +757,7 @@ export type GetExerciseStatsResponses = {
 
 export type GetExerciseStatsResponse = GetExerciseStatsResponses[keyof GetExerciseStatsResponses];
 
-export type GetExerciseRecordsData = {
+export type GetExerciseRecordData = {
     body?: never;
     path: {
         /**
@@ -773,23 +766,25 @@ export type GetExerciseRecordsData = {
         exercise_id: string;
     };
     query?: never;
-    url: '/api/exercises/{exercise_id}/records';
+    url: '/api/exercises/{exercise_id}/record';
 };
 
-export type GetExerciseRecordsErrors = {
+export type GetExerciseRecordErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetExerciseRecordsError = GetExerciseRecordsErrors[keyof GetExerciseRecordsErrors];
+export type GetExerciseRecordError = GetExerciseRecordErrors[keyof GetExerciseRecordErrors];
 
-export type GetExerciseRecordsResponses = {
+export type GetExerciseRecordResponses = {
     /**
+     * Response Get Exercise Record
+     *
      * Successful Response
      */
-    200: ExerciseRecords;
+    200: RecordOut | null;
 };
 
-export type GetExerciseRecordsResponse = GetExerciseRecordsResponses[keyof GetExerciseRecordsResponses];
+export type GetExerciseRecordResponse = GetExerciseRecordResponses[keyof GetExerciseRecordResponses];
