@@ -100,6 +100,38 @@ export type ExerciseOut = {
 };
 
 /**
+ * ExerciseStat
+ *
+ * Итог одного упражнения за один день, точка на графике в истории.
+ */
+export type ExerciseStat = {
+    /**
+     * Date
+     */
+    date: string;
+    /**
+     * Best Weight
+     */
+    best_weight: number;
+    /**
+     * Max Reps
+     */
+    max_reps: number;
+    /**
+     * Volume
+     */
+    volume: number;
+    /**
+     * Total Reps
+     */
+    total_reps: number;
+    /**
+     * Sets
+     */
+    sets: number;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -647,3 +679,44 @@ export type GetProgressResponses = {
 };
 
 export type GetProgressResponse = GetProgressResponses[keyof GetProgressResponses];
+
+export type GetExerciseStatsData = {
+    body?: never;
+    path: {
+        /**
+         * Exercise Id
+         */
+        exercise_id: string;
+    };
+    query: {
+        /**
+         * From
+         */
+        from: string;
+        /**
+         * To
+         */
+        to: string;
+    };
+    url: '/api/exercises/{exercise_id}/stats';
+};
+
+export type GetExerciseStatsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetExerciseStatsError = GetExerciseStatsErrors[keyof GetExerciseStatsErrors];
+
+export type GetExerciseStatsResponses = {
+    /**
+     * Response Get Exercise Stats
+     *
+     * Successful Response
+     */
+    200: Array<ExerciseStat>;
+};
+
+export type GetExerciseStatsResponse = GetExerciseStatsResponses[keyof GetExerciseStatsResponses];

@@ -5,6 +5,7 @@ import {
   clearDaysMutation,
   getDayOptions,
   getDayQueryKey,
+  getExerciseStatsOptions,
   getMeOptions,
   getMeQueryKey,
   getProgressOptions,
@@ -33,6 +34,7 @@ export type {
   DayOut,
   DaySummary,
   ExerciseOut,
+  ExerciseStat,
   MuscleGroupOut,
   Progress,
   SetIn,
@@ -99,6 +101,8 @@ function onDaySaved(day: DayOut) {
   queryClient.invalidateQueries({ queryKey: [{ _id: "listDays" }] });
   // Первый подход за день добавляет XP и тренировку в неделю
   queryClient.invalidateQueries({ queryKey: [{ _id: "getProgress" }] });
+  // Подход поменялся: графики в истории перерисуются
+  queryClient.invalidateQueries({ queryKey: [{ _id: "getExerciseStats" }] });
 }
 
 export function useDayMutations() {
@@ -126,4 +130,13 @@ export function useClearDays() {
 
 export function useProgress() {
   return useQuery({ ...getProgressOptions(), staleTime: 0 });
+}
+
+// ---------- Графики прогресса ----------
+
+// Лучший вес, повторы и объём упражнения по дням, для графика в истории
+export function useExerciseStats(exerciseId: string, from: string, to: string) {
+  return useQuery(
+    getExerciseStatsOptions({ path: { exercise_id: exerciseId }, query: { from, to } }),
+  );
 }

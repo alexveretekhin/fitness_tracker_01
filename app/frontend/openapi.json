@@ -646,6 +646,73 @@
           }
         }
       }
+    },
+    "/api/exercises/{exercise_id}/stats": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Get Exercise Stats",
+        "description": "Лучший вес, повторы и объём за каждый день с этим упражнением, по порядку дат.\n\nДни, где упражнение добавлено, но подходов нет, не попадают.",
+        "operationId": "get_exercise_stats",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exercise Id"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExerciseStat"
+                  },
+                  "title": "Response Get Exercise Stats"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -793,6 +860,46 @@
           "primary_muscles"
         ],
         "title": "ExerciseOut"
+      },
+      "ExerciseStat": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "best_weight": {
+            "type": "number",
+            "title": "Best Weight"
+          },
+          "max_reps": {
+            "type": "integer",
+            "title": "Max Reps"
+          },
+          "volume": {
+            "type": "number",
+            "title": "Volume"
+          },
+          "total_reps": {
+            "type": "integer",
+            "title": "Total Reps"
+          },
+          "sets": {
+            "type": "integer",
+            "title": "Sets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "best_weight",
+          "max_reps",
+          "volume",
+          "total_reps",
+          "sets"
+        ],
+        "title": "ExerciseStat",
+        "description": "Итог одного упражнения за один день, точка на графике в истории."
       },
       "HTTPValidationError": {
         "properties": {
