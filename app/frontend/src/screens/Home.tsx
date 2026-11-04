@@ -1,13 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useDay, useDayMutations } from "../api";
+import { useDay, useDayMutations, useExerciseCatalog } from "../api";
 import { DayCalendar } from "../components/DayCalendar";
+import { ExerciseDemo } from "../components/ExerciseDemo";
 import { SetSheet } from "../components/SetSheet";
-import { EmptyState, ListRow, Panel, QueryState } from "../components/ui";
+import { EmptyState, ListRow, Panel, PlayButton, QueryState } from "../components/ui";
 import { XpBar } from "../components/XpBar";
 import { useAppStore } from "../store/useAppStore";
 
-// Главная: лента недели с огоньками и упражнения выбранного дня
+// Главная: лента недели с огоньками и упражнения выбранного дня.
+// У каждого упражнения справа: подходы, крестик × (убрать) и Play (демо техники).
 export function Home() {
   const navigate = useNavigate();
   const date = useAppStore((s) => s.selectedDay);
@@ -15,6 +17,8 @@ export function Home() {
   const day = useDay(date);
   const m = useDayMutations();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [demoId, setDemoId] = useState<string | null>(null);
+  const catalog = useExerciseCatalog().data; // отсюда берём ссылку на демо
 
   const entries = day.data?.exercises ?? [];
   const open = entries.find((e) => e.exercise_id === openId) ?? null;
@@ -33,33 +37,40 @@ export function Home() {
           <EmptyState onClick={() => navigate({ to: "/muscles" })}>Add Exercises</EmptyState>
         )}
         {entries.map((e) => (
-          <ListRow
-            key={e.exercise_id}
-            onClick={() => setOpenId(e.exercise_id)}
-            right={
-              <>
-                {e.sets.length > 0 && (
-                  <span className="text-xs text-text-muted">{e.sets.length} подх.</span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Если подходы уже записаны, переспрашиваем: они удалятся вместе с упражнением
-                    const n = e.sets.length;
-                    if (n > 0 && !confirm(`Убрать «${e.name}» вместе с подходами (${n})?`)) return;
-                    m.removeExercise.mutate({ path: { date, exercise_id: e.exercise_id } });
-                  }}
-                  disabled={busy}
-                  aria-label={`Убрать ${e.name}`}
-                  className="-mr-1.5 grid size-tap place-items-center text-lg text-text-muted active:text-accent"
-                >
-                  ×
-                </button>
-              </>
-            }
-          >
-            {e.name}
-          </ListRow>
+          <div key={e.exercise_id}>
+            <ListRow
+              onClick={() => setOpenId(e.exercise_id)}
+              right={
+                <>
+                  {e.sets.length > 0 && (
+                    <span className="text-xs text-text-muted">{e.sets.length} подх.</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Если подходы уже записаны, переспрашиваем: они удалятся вместе с упражнением
+                      const n = e.sets.length;
+                      if (n > 0 && !confirm(`Убрать «${e.name}» вместе с подходами (${n})?`))
+                        return;
+                      m.removeExercise.mutate({ path: { date, exercise_id: e.exercise_id } });
+                    }}
+                    disabled={busy}
+                    aria-label={`Убрать ${e.name}`}
+                    className="grid size-tap place-items-center text-lg text-text-muted active:text-accent"
+                  >
+                    ×
+                  </button>
+                  <PlayButton
+                    active={demoId === e.exercise_id}
+                    onClick={() => setDemoId(demoId === e.exercise_id ? null : e.exercise_id)}
+                  />
+                </>
+              }
+            >
+              {e.name}
+            </ListRow>
+            <ExerciseDemo open={demoId === e.exercise_id} src={catalog?.[e.exercise_id]?.demo} />
+          </div>
         ))}
       </Panel>
 
