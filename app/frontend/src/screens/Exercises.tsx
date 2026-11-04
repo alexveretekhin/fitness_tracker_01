@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useDay, useDayMutations, useMuscleGroups } from "../api";
 import { listGroupExercisesOptions } from "../api/generated/@tanstack/react-query.gen";
+import { ExerciseDemo } from "../components/ExerciseDemo";
 import { useFly } from "../components/FlyToHome";
 import { ListRow, Panel, PlayButton, QueryState, SearchField } from "../components/ui";
 import { useAppStore } from "../store/useAppStore";
@@ -93,24 +93,7 @@ export function Exercises() {
               {e.name}
               {already && <span className="text-accent"> ✓</span>}
             </ListRow>
-            <AnimatePresence>
-              {demoId === e.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="mb-1.5 overflow-hidden rounded-row border border-border"
-                >
-                  {e.demo ? (
-                    <video src={e.demo} autoPlay muted loop playsInline className="w-full" />
-                  ) : (
-                    <div className="grid h-32 place-items-center bg-surface text-sm text-text-faint">
-                      анимация скоро
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <ExerciseDemo open={demoId === e.id} src={e.demo} />
           </div>
         );
       })}
