@@ -9,6 +9,8 @@ import { addDays, dayKey, fromDayKey } from "../store/useAppStore";
 //
 //   Месяц: последние 30 дней, точка на каждую тренировку
 //   Год:   последние 12 месяцев, точка на месяц = лучшая тренировка месяца
+//
+//   Кубок: на «Силе» точка рекордной тренировки помечена record (ADR 0013)
 
 export type Metric = "strength" | "volume";
 export type Range = "month" | "year";
@@ -17,6 +19,7 @@ export type Point = {
   x: number; // 0..1, место по горизонтали
   value: number;
   label: string; // «4 ноя» или «ноя 2026», для подсказки при тапе
+  record?: boolean; // рекордная тренировка (или её месяц на «Годе»): над точкой кубок
 };
 
 export type Series = {
@@ -55,7 +58,10 @@ export function buildSeries(
   metric: Metric,
   range: Range,
   today: string,
+  recordDate: string | null = null,
 ): Series {
+  // Кубок только на «Силе»: рекорд считается по силе, на объёме он был бы не на вершине
+  const record = metric === "strength" ? recordDate : null;
   const end = fromDayKey(today);
   // Упражнение без веса: за всё время ни одного подхода с весом
   const bodyweight = stats.every((s) => s.best_weight === 0);
@@ -73,6 +79,7 @@ export function buildSeries(
           x: (d.getTime() - start.getTime()) / span,
           value: pointValue(s, metric, bodyweight),
           label: `${d.getDate()} ${MONTHS[d.getMonth()]}`,
+          record: s.date === record,
         };
       });
     const ticks = [0, 10, 20, 29].map((i) => {
@@ -97,8 +104,15 @@ export function buildSeries(
   }
   const points: Point[] = [];
   months.forEach(({ y, m }, i) => {
-    const v = best.get(`${y}-${String(m + 1).padStart(2, "0")}`);
-    if (v !== undefined) points.push({ x: i / 11, value: v, label: `${MONTHS_NOM[m]} ${y}` });
+    const key = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const v = best.get(key);
+    if (v !== undefined)
+      points.push({
+        x: i / 11,
+        value: v,
+        label: `${MONTHS_NOM[m]} ${y}`,
+        record: record?.slice(0, 7) === key,
+      });
   });
   const ticks = months
     .map(({ m }, i) => ({ x: i / 11, label: MONTHS_NOM[m] }))
