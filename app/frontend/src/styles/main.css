@@ -16,7 +16,7 @@
   }
 
   /* Полоса прокрутки в нашем стиле вместо белой системной (Windows).
-     Chrome, Edge, Safari: тонкий тёмный бегунок без стрелок, при наведении оранжевый. */
+     Chrome, Edge, Safari: тонкий тёмный бегунок без стрелок, при наведении чуть светлее. */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -31,7 +31,7 @@
   }
   ::-webkit-scrollbar-thumb:hover,
   ::-webkit-scrollbar-thumb:active {
-    background: var(--color-accent);
+    background: var(--color-scrollbar-hover);
   }
   ::-webkit-scrollbar-button {
     display: none;
