@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useId, useState } from "react";
-import type { RecordOut } from "../api";
+import { type ReactNode, useId, useState } from "react";
 import { formatValue, type Series } from "../lib/stats";
 import { Icon } from "./Icon";
 
@@ -13,8 +12,8 @@ import { Icon } from "./Icon";
 //      06.10   16.10   26.10
 //
 // Тап по точке показывает её дату и значение.
-// Кубок слева над графиком: тап выбирает рекордный день, над его точкой
-// появляется кубок, а под строкой значения сам рекорд (ADR 0013).
+// Над точкой рекордной тренировки всегда стоит кубок. Тап по кубку выбирает
+// этот день и открывает поверх графика окошко с рекордной тренировкой (ADR 0013).
 
 const W = 320;
 const H = 170;
@@ -22,22 +21,15 @@ const PAD = { left: 34, right: 10, top: 12, bottom: 22 };
 
 type Props = {
   series: Series;
-  record?: RecordOut | null; // рекорд упражнения: есть = слева кнопка-кубок
+  recordCard?: ReactNode; // что показать в окошке по тапу на кубок
 };
 
-export function ProgressChart({ series, record }: Props) {
+export function ProgressChart({ series, recordCard }: Props) {
   const { points, unit, approx, ticks } = series;
   const gradient = useId();
   const [picked, setPicked] = useState<number | null>(null);
-  const [showRecord, setShowRecord] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
   const selected = points[picked ?? points.length - 1];
-  const recordIndex = points.findIndex((p) => p.record);
-
-  const toggleRecord = () => {
-    const next = !showRecord;
-    setShowRecord(next);
-    if (next && recordIndex >= 0) setPicked(recordIndex);
-  };
 
   if (points.length === 0) {
     return (
@@ -60,53 +52,20 @@ export function ProgressChart({ series, record }: Props) {
 
   return (
     <div>
-      <div className="mb-1 flex min-h-8 items-center gap-2 text-sm">
-        {record && (
-          <button
-            type="button"
-            onClick={toggleRecord}
-            aria-pressed={showRecord}
-            aria-label="Показать рекорд"
-            className={`grid size-8 shrink-0 place-items-center rounded-full border transition active:scale-90 ${
-              showRecord ? "border-accent text-accent" : "border-border text-text-muted"
-            }`}
-          >
-            <Icon name="trophy" className="size-4" />
-          </button>
-        )}
-        <p>
-          <span className="text-lg text-accent">
-            {approx && "≈ "}
-            {formatValue(selected.value)}
-          </span>{" "}
-          <span className="text-text-muted">
-            {unit} · {selected.label}
+      <p className="mb-1 h-6 text-sm">
+        <span className="text-lg text-accent">
+          {approx && "≈ "}
+          {formatValue(selected.value)}
+        </span>{" "}
+        <span className="text-text-muted">
+          {unit} · {selected.label}
+        </span>
+        {selected.record && (
+          <span className="ml-1.5 text-accent">
+            <Icon name="trophy" className="size-3.5 align-[-2px]" /> рекорд
           </span>
-        </p>
-      </div>
-
-      <AnimatePresence initial={false}>
-        {record && showRecord && (
-          <motion.p
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden text-xs text-text-muted"
-          >
-            <span className="block pb-1">
-              Рекорд:{" "}
-              <span className="text-accent">
-                {record.weight > 0
-                  ? `${formatValue(record.weight)} кг × ${record.reps}`
-                  : `${record.reps} повт.`}
-              </span>
-              {record.weight > 0 && ` (сила ≈ ${formatValue(record.strength)} кг)`} ·{" "}
-              {formatDate(record.date)}
-              {recordIndex < 0 && " · на этом графике его нет, посмотри «Год»"}
-            </span>
-          </motion.p>
         )}
-      </AnimatePresence>
+      </p>
 
       <div className="relative">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" aria-hidden>
@@ -197,45 +156,71 @@ export function ProgressChart({ series, record }: Props) {
           ))}
         </svg>
 
-        {/* Кубок над рекордной точкой: появляется по кнопке-кубку слева */}
-        {points
-          .filter((p) => p.record && showRecord)
-          .map((p) => (
-            <motion.span
-              key={`trophy-${drawKey}`}
-              aria-hidden
-              className="pointer-events-none absolute -translate-x-1/2 text-accent"
-              style={{
-                left: `${(px(p.x) / W) * 100}%`,
-                top: `calc(${(py(p.value) / H) * 100}% - 26px)`,
-              }}
-              initial={{ opacity: 0, y: 6, scale: 0.5 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 18 }}
-            >
-              <Icon name="trophy" className="size-4" />
-            </motion.span>
-          ))}
-
         {/* Невидимые кнопки поверх точек: в них удобно попасть пальцем */}
         {points.map((p, i) => (
           <button
             type="button"
             key={`${p.x}-${p.label}`}
             aria-label={`${p.label}: ${formatValue(p.value)} ${unit}${p.record ? ", рекорд" : ""}`}
-            onClick={() => setPicked(i)}
+            onClick={() => {
+              setPicked(i);
+              setCardOpen(false);
+            }}
             className="absolute size-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{ left: `${(px(p.x) / W) * 100}%`, top: `${(py(p.value) / H) * 100}%` }}
           />
         ))}
+
+        {/* Кубок над рекордной точкой: виден всегда, тап открывает окошко рекорда */}
+        {points.map((p, i) =>
+          p.record ? (
+            <motion.button
+              type="button"
+              key={`trophy-${drawKey}`}
+              aria-label="Рекордная тренировка"
+              aria-expanded={cardOpen}
+              onClick={() => {
+                setPicked(i);
+                setCardOpen((open) => !open);
+              }}
+              className="absolute grid size-8 -translate-x-1/2 place-items-center text-accent"
+              style={{
+                left: `${(px(p.x) / W) * 100}%`,
+                top: `calc(${(py(p.value) / H) * 100}% - 34px)`,
+              }}
+              initial={{ opacity: 0, y: 6, scale: 0.5 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              whileTap={{ scale: 0.85 }}
+              transition={{ delay: 0.8, type: "spring", stiffness: 400, damping: 18 }}
+            >
+              <Icon name="trophy" className="size-4" />
+            </motion.button>
+          ) : null,
+        )}
+
+        <AnimatePresence>
+          {cardOpen && recordCard && (
+            <motion.div
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              className="absolute inset-x-1 top-1 z-10 rounded-row border border-accent bg-surface-strong p-3 shadow-lg shadow-black/50"
+            >
+              <button
+                type="button"
+                aria-label="Закрыть рекорд"
+                onClick={() => setCardOpen(false)}
+                className="absolute top-1 right-1 grid size-8 place-items-center text-text-muted"
+              >
+                ×
+              </button>
+              {recordCard}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
-}
-
-// "2026-06-06" → "06.06.26"
-function formatDate(date: string): string {
-  return `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(2, 4)}`;
 }
 
 // Шкала по вертикали: «круглый» шаг (1, 2, 2,5, 5, 10…), 2–4 линии сетки

@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { useDay, useExerciseRecord, useExerciseStats } from "../api";
+import { type RecordOut, useDay, useExerciseRecord, useExerciseStats } from "../api";
 import { buildSeries, formatValue, type Metric, type Range, since } from "../lib/stats";
-import { useAppStore } from "../store/useAppStore";
+import { fromDayKey, useAppStore } from "../store/useAppStore";
+import { Icon } from "./Icon";
 import { ProgressChart } from "./ProgressChart";
 
 // Окно с графиком: выезжает снизу по иконке графика на дне в истории.
@@ -95,7 +96,7 @@ function ExerciseChart({
 }) {
   const today = useAppStore((s) => s.today);
   const stats = useExerciseStats(exerciseId, since(today), today);
-  // Рекордная тренировка: кубок слева над графиком «Сила» показывает её
+  // Рекордная тренировка: на графике «Сила» над её точкой кубок
   const record = useExerciseRecord(exerciseId).data ?? null;
   if (!stats.data) return <div className="h-56" />;
 
@@ -110,7 +111,11 @@ function ExerciseChart({
       <ProgressChart
         key={`${exerciseId}-${metric}-${range}`}
         series={series}
-        record={metric === "strength" ? record : null}
+        recordCard={
+          metric === "strength" && record ? (
+            <RecordCard exerciseId={exerciseId} record={record} />
+          ) : undefined
+        }
       />
       {first && last && series.points.length > 1 && (
         <p className="mt-2 text-center text-sm text-text-muted">
@@ -131,6 +136,46 @@ function ExerciseChart({
             : "Все повторы за тренировку"}
         {range === "year" && ", лучшая тренировка месяца"}
       </p>
+    </>
+  );
+}
+
+// "2026-06-06" → "6 июня 2026"
+function longDate(date: string): string {
+  return fromDayKey(date).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+// Окошко по тапу на кубок: когда была рекордная тренировка и все подходы
+// этого упражнения в тот день, рекордный подход с кубком
+function RecordCard({ exerciseId, record }: { exerciseId: string; record: RecordOut }) {
+  const day = useDay(record.date).data;
+  const sets = day?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
+
+  return (
+    <>
+      <p className="flex items-center gap-1.5 pr-6 text-sm text-accent">
+        <Icon name="trophy" className="size-4" />
+        Рекордная тренировка
+      </p>
+      <p className="mt-0.5 text-xs text-text-muted">{longDate(record.date)}</p>
+      <ol className="mt-2 text-sm">
+        {sets.map((s, i) => (
+          <li key={s.id} className={`flex items-center gap-2 ${s.record ? "text-accent" : ""}`}>
+            <span className="w-4 text-text-faint">{i + 1}</span>
+            {s.weight > 0 ? `${formatValue(s.weight)} кг × ${s.reps}` : `${s.reps} повт.`}
+            {s.record && <Icon name="trophy" className="size-3.5" />}
+          </li>
+        ))}
+      </ol>
+      {record.weight > 0 && (
+        <p className="mt-2 text-xs text-text-faint">
+          Сила лучшего подхода ≈ {formatValue(record.strength)} кг
+        </p>
+      )}
     </>
   );
 }
