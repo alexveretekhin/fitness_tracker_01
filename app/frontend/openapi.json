@@ -714,14 +714,14 @@
         }
       }
     },
-    "/api/exercises/{exercise_id}/records": {
+    "/api/exercises/{exercise_id}/record": {
       "get": {
         "tags": [
           "stats"
         ],
-        "summary": "Get Exercise Records",
-        "description": "Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012).",
-        "operationId": "get_exercise_records",
+        "summary": "Get Exercise Record",
+        "description": "Рекордная тренировка упражнения за всё время, или null, если рекорда ещё нет (ADR 0013).",
+        "operationId": "get_exercise_record",
         "parameters": [
           {
             "name": "exercise_id",
@@ -739,7 +739,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExerciseRecords"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/RecordOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Exercise Record"
                 }
               }
             }
@@ -909,33 +917,6 @@
         ],
         "title": "ExerciseOut"
       },
-      "ExerciseRecords": {
-        "properties": {
-          "by_reps": {
-            "items": {
-              "$ref": "#/components/schemas/RepRecord"
-            },
-            "type": "array",
-            "title": "By Reps"
-          },
-          "bodyweight": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RepRecord"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "by_reps",
-          "bodyweight"
-        ],
-        "title": "ExerciseRecords"
-      },
       "ExerciseStat": {
         "properties": {
           "date": {
@@ -1096,30 +1077,35 @@
         ],
         "title": "Progress"
       },
-      "RepRecord": {
+      "RecordOut": {
         "properties": {
-          "reps": {
-            "type": "integer",
-            "title": "Reps"
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
           },
           "weight": {
             "type": "number",
             "title": "Weight"
           },
-          "date": {
-            "type": "string",
-            "format": "date",
-            "title": "Date"
+          "reps": {
+            "type": "integer",
+            "title": "Reps"
+          },
+          "strength": {
+            "type": "number",
+            "title": "Strength"
           }
         },
         "type": "object",
         "required": [
-          "reps",
+          "date",
           "weight",
-          "date"
+          "reps",
+          "strength"
         ],
-        "title": "RepRecord",
-        "description": "Строка таблицы рекордов: лучший вес на столько повторов и когда он был."
+        "title": "RecordOut",
+        "description": "Рекорд упражнения: лучший подход за всё время и день, когда он сделан."
       },
       "SetIn": {
         "properties": {

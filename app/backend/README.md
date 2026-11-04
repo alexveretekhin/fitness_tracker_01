@@ -27,13 +27,13 @@ app/
   catalog.py   # стартовый список мышц и упражнений
   seed.py      # заливает каталог в базу
   progress.py  # правила XP и уровней (числа меняются здесь)
-  records.py   # рекорды: таблица по повторам и кубки на подходах
+  records.py   # рекорд упражнения: лучшая тренировка за всё время, кубок
   api/
     catalog.py # /api/muscle-groups, /api/exercises
     days.py    # /api/days: упражнения дня, подходы, огоньки
     me.py      # /api/me: аватар
     progress.py # /api/me/progress: XP и уровень
-    stats.py   # /api/exercises/{id}/stats и /records: графики и рекорды в истории
+    stats.py   # /api/exercises/{id}/stats и /record: графики и рекорды в истории
 migrations/    # история изменений схемы базы (Alembic)
 tests/         # тесты (uv run pytest)
 ```
@@ -57,7 +57,7 @@ tests/         # тесты (uv run pytest)
 | GET/PUT | `/api/me` | Профиль и аватар |
 | GET | `/api/me/progress` | XP и уровень |
 | GET | `/api/exercises/{id}/stats?from=…&to=…` | Сила (e1RM), лучший вес, повторы и объём упражнения по дням (графики) |
-| GET | `/api/exercises/{id}/records` | Рекорды за всё время: лучший вес на 1, 3, 5, 8, 10 повторов |
+| GET | `/api/exercises/{id}/record` | Рекордная тренировка упражнения за всё время (или null) |
 
 ## Схема API для фронтенда
 

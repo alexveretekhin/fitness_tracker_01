@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordsData, GetExerciseRecordsErrors, GetExerciseRecordsResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordData, GetExerciseRecordErrors, GetExerciseRecordResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -149,8 +149,8 @@ export const getProgress = <ThrowOnError extends boolean = false>(options?: Opti
 export const getExerciseStats = <ThrowOnError extends boolean = false>(options: Options<GetExerciseStatsData, ThrowOnError>): RequestResult<GetExerciseStatsResponses, GetExerciseStatsErrors, ThrowOnError> => (options.client ?? client).get<GetExerciseStatsResponses, GetExerciseStatsErrors, ThrowOnError>({ url: '/api/exercises/{exercise_id}/stats', ...options });
 
 /**
- * Get Exercise Records
+ * Get Exercise Record
  *
- * Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012).
+ * Рекордная тренировка упражнения за всё время, или null, если рекорда ещё нет (ADR 0013).
  */
-export const getExerciseRecords = <ThrowOnError extends boolean = false>(options: Options<GetExerciseRecordsData, ThrowOnError>): RequestResult<GetExerciseRecordsResponses, GetExerciseRecordsErrors, ThrowOnError> => (options.client ?? client).get<GetExerciseRecordsResponses, GetExerciseRecordsErrors, ThrowOnError>({ url: '/api/exercises/{exercise_id}/records', ...options });
+export const getExerciseRecord = <ThrowOnError extends boolean = false>(options: Options<GetExerciseRecordData, ThrowOnError>): RequestResult<GetExerciseRecordResponses, GetExerciseRecordErrors, ThrowOnError> => (options.client ?? client).get<GetExerciseRecordResponses, GetExerciseRecordErrors, ThrowOnError>({ url: '/api/exercises/{exercise_id}/record', ...options });

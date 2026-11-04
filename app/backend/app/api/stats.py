@@ -13,8 +13,8 @@ from sqlmodel import case, col, func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
-from app.records import load_sets, rep_records
-from app.schemas import ExerciseRecords, ExerciseStat, RepRecord
+from app.records import load_sets, records, strength
+from app.schemas import ExerciseStat, RecordOut
 
 router = APIRouter(tags=["stats"])
 
@@ -74,15 +74,14 @@ def get_exercise_stats(
     ]
 
 
-@router.get("/exercises/{exercise_id}/records", response_model=ExerciseRecords)
-def get_exercise_records(exercise_id: str, session: SessionDep, user: CurrentUser):
-    """Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012)."""
+@router.get("/exercises/{exercise_id}/record", response_model=RecordOut | None)
+def get_exercise_record(exercise_id: str, session: SessionDep, user: CurrentUser):
+    """Рекордная тренировка упражнения за всё время, или null, если рекорда ещё нет (ADR 0013)."""
     if session.get(Exercise, exercise_id) is None:
         raise HTTPException(404, f"Нет упражнения '{exercise_id}'")
-    table, bodyweight = rep_records(load_sets(session, user.id, exercise_id))
-    return ExerciseRecords(
-        by_reps=[RepRecord(reps=r.reps, weight=r.weight, date=r.date) for r in table],
-        bodyweight=RepRecord(reps=bodyweight.reps, weight=0, date=bodyweight.date)
-        if bodyweight
-        else None,
+    best = records(load_sets(session, user.id, exercise_id)).get(exercise_id)
+    if best is None:
+        return None
+    return RecordOut(
+        date=best.date, weight=best.weight, reps=best.reps, strength=round(strength(best), 1)
     )
