@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { type ReactNode, useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { formatValue, type Series } from "../lib/stats";
 import { Icon } from "./Icon";
 
@@ -13,23 +13,44 @@ import { Icon } from "./Icon";
 //
 // Тап по точке показывает её дату и значение.
 // Над точкой рекордной тренировки всегда стоит кубок. Тап по кубку выбирает
-// этот день и открывает поверх графика окошко с рекордной тренировкой (ADR 0013).
+// этот день и показывает рядом с кубком строку с рекордом (ADR 0013).
 
 const W = 320;
 const H = 170;
 const PAD = { left: 34, right: 10, top: 12, bottom: 22 };
 
+// Место точки по горизонтали в координатах SVG
+const px = (x: number) => PAD.left + x * (W - PAD.left - PAD.right);
+
 type Props = {
   series: Series;
-  recordCard?: ReactNode; // что показать в окошке по тапу на кубок
+  recordLabel?: string; // строка рядом с кубком по тапу: «85 кг × 10 · 06.06.26»
 };
 
-export function ProgressChart({ series, recordCard }: Props) {
+export function ProgressChart({ series, recordLabel }: Props) {
   const { points, unit, approx, ticks } = series;
   const gradient = useId();
   const [picked, setPicked] = useState<number | null>(null);
-  const [cardOpen, setCardOpen] = useState(false);
+  const [labelOpen, setLabelOpen] = useState(false);
   const selected = points[picked ?? points.length - 1];
+  const recordPoint = points.find((p) => p.record);
+
+  // Куда поставить строку рекорда: справа от кубка, а если не влезает, то слева.
+  // Ширину строки узнаём только после отрисовки, поэтому считаем в useLayoutEffect.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const [labelLeft, setLabelLeft] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    const label = labelRef.current;
+    if (!labelOpen || !recordPoint || !box || !label) return setLabelLeft(null);
+    const width = box.clientWidth;
+    const w = label.offsetWidth;
+    const trophy = (px(recordPoint.x) / W) * width;
+    let left = trophy + 18;
+    if (left + w > width) left = trophy - 18 - w;
+    setLabelLeft(Math.max(0, Math.min(width - w, left)));
+  }, [labelOpen, recordPoint]);
 
   if (points.length === 0) {
     return (
@@ -41,7 +62,6 @@ export function ProgressChart({ series, recordCard }: Props) {
 
   const { lo, hi, grid } = niceScale(points.map((p) => p.value));
 
-  const px = (x: number) => PAD.left + x * (W - PAD.left - PAD.right);
   const py = (v: number) => PAD.top + (1 - (v - lo) / (hi - lo)) * (H - PAD.top - PAD.bottom);
   const bottom = H - PAD.bottom;
 
@@ -67,7 +87,7 @@ export function ProgressChart({ series, recordCard }: Props) {
         )}
       </p>
 
-      <div className="relative">
+      <div ref={boxRef} className="relative">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" aria-hidden>
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
@@ -164,24 +184,24 @@ export function ProgressChart({ series, recordCard }: Props) {
             aria-label={`${p.label}: ${formatValue(p.value)} ${unit}${p.record ? ", рекорд" : ""}`}
             onClick={() => {
               setPicked(i);
-              setCardOpen(false);
+              setLabelOpen(false);
             }}
             className="absolute size-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{ left: `${(px(p.x) / W) * 100}%`, top: `${(py(p.value) / H) * 100}%` }}
           />
         ))}
 
-        {/* Кубок над рекордной точкой: виден всегда, тап открывает окошко рекорда */}
+        {/* Кубок над рекордной точкой: виден всегда, тап показывает строку с рекордом */}
         {points.map((p, i) =>
           p.record ? (
             <motion.button
               type="button"
               key={`trophy-${drawKey}`}
               aria-label="Рекордная тренировка"
-              aria-expanded={cardOpen}
+              aria-expanded={labelOpen}
               onClick={() => {
                 setPicked(i);
-                setCardOpen((open) => !open);
+                setLabelOpen((open) => !open);
               }}
               className="absolute grid size-8 -translate-x-1/2 place-items-center text-accent"
               style={{
@@ -198,24 +218,25 @@ export function ProgressChart({ series, recordCard }: Props) {
           ) : null,
         )}
 
+        {/* Строка с рекордом рядом с кубком: справа от него, а если не влезает, слева */}
         <AnimatePresence>
-          {cardOpen && recordCard && (
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              className="absolute inset-x-1 top-1 z-10 rounded-row border border-accent bg-surface-strong p-3 shadow-lg shadow-black/50"
+          {labelOpen && recordLabel && recordPoint && (
+            <motion.span
+              ref={labelRef}
+              key="record-label"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: labelLeft === null ? 0 : 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="pointer-events-none absolute z-10 flex h-8 items-center"
+              style={{
+                left: labelLeft ?? 0,
+                top: `calc(${(py(recordPoint.value) / H) * 100}% - 34px)`,
+              }}
             >
-              <button
-                type="button"
-                aria-label="Закрыть рекорд"
-                onClick={() => setCardOpen(false)}
-                className="absolute top-1 right-1 grid size-8 place-items-center text-text-muted"
-              >
-                ×
-              </button>
-              {recordCard}
-            </motion.div>
+              <span className="whitespace-nowrap rounded-full border border-accent bg-surface px-2 py-0.5 text-xs text-accent">
+                {recordLabel}
+              </span>
+            </motion.span>
           )}
         </AnimatePresence>
       </div>
