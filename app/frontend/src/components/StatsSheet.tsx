@@ -95,11 +95,11 @@ function ExerciseChart({
 }) {
   const today = useAppStore((s) => s.today);
   const stats = useExerciseStats(exerciseId, since(today), today);
-  // Рекордная тренировка: на графике над её точкой кубок
-  const recordDate = useExerciseRecord(exerciseId).data?.date ?? null;
+  // Рекордная тренировка: кубок слева над графиком «Сила» показывает её
+  const record = useExerciseRecord(exerciseId).data ?? null;
   if (!stats.data) return <div className="h-56" />;
 
-  const series = buildSeries(stats.data, metric, range, today, recordDate);
+  const series = buildSeries(stats.data, metric, range, today, record?.date ?? null);
   const first = series.points[0];
   const last = series.points.at(-1);
   const delta = first && last ? last.value - first.value : 0;
@@ -107,7 +107,11 @@ function ExerciseChart({
   return (
     <>
       {/* key: выбранная точка сбрасывается на последнюю при смене режима */}
-      <ProgressChart key={`${exerciseId}-${metric}-${range}`} series={series} />
+      <ProgressChart
+        key={`${exerciseId}-${metric}-${range}`}
+        series={series}
+        record={metric === "strength" ? record : null}
+      />
       {first && last && series.points.length > 1 && (
         <p className="mt-2 text-center text-sm text-text-muted">
           было {formatValue(first.value)} → стало {formatValue(last.value)} {series.unit}{" "}

@@ -1,5 +1,6 @@
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useId, useState } from "react";
+import type { RecordOut } from "../api";
 import { formatValue, type Series } from "../lib/stats";
 import { Icon } from "./Icon";
 
@@ -12,17 +13,31 @@ import { Icon } from "./Icon";
 //      06.10   16.10   26.10
 //
 // Тап по точке показывает её дату и значение.
-// Над точкой рекордной тренировки стоит оранжевый кубок.
+// Кубок слева над графиком: тап выбирает рекордный день, над его точкой
+// появляется кубок, а под строкой значения сам рекорд (ADR 0013).
 
 const W = 320;
 const H = 170;
 const PAD = { left: 34, right: 10, top: 12, bottom: 22 };
 
-export function ProgressChart({ series }: { series: Series }) {
+type Props = {
+  series: Series;
+  record?: RecordOut | null; // рекорд упражнения: есть = слева кнопка-кубок
+};
+
+export function ProgressChart({ series, record }: Props) {
   const { points, unit, approx, ticks } = series;
   const gradient = useId();
   const [picked, setPicked] = useState<number | null>(null);
+  const [showRecord, setShowRecord] = useState(false);
   const selected = points[picked ?? points.length - 1];
+  const recordIndex = points.findIndex((p) => p.record);
+
+  const toggleRecord = () => {
+    const next = !showRecord;
+    setShowRecord(next);
+    if (next && recordIndex >= 0) setPicked(recordIndex);
+  };
 
   if (points.length === 0) {
     return (
@@ -45,20 +60,53 @@ export function ProgressChart({ series }: { series: Series }) {
 
   return (
     <div>
-      <p className="mb-1 h-6 text-sm">
-        <span className="text-lg text-accent">
-          {approx && "≈ "}
-          {formatValue(selected.value)}
-        </span>{" "}
-        <span className="text-text-muted">
-          {unit} · {selected.label}
-        </span>
-        {selected.record && (
-          <span className="ml-1.5 text-accent">
-            <Icon name="trophy" className="size-3.5 align-[-2px]" /> рекорд
-          </span>
+      <div className="mb-1 flex min-h-8 items-center gap-2 text-sm">
+        {record && (
+          <button
+            type="button"
+            onClick={toggleRecord}
+            aria-pressed={showRecord}
+            aria-label="Показать рекорд"
+            className={`grid size-8 shrink-0 place-items-center rounded-full border transition active:scale-90 ${
+              showRecord ? "border-accent text-accent" : "border-border text-text-muted"
+            }`}
+          >
+            <Icon name="trophy" className="size-4" />
+          </button>
         )}
-      </p>
+        <p>
+          <span className="text-lg text-accent">
+            {approx && "≈ "}
+            {formatValue(selected.value)}
+          </span>{" "}
+          <span className="text-text-muted">
+            {unit} · {selected.label}
+          </span>
+        </p>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {record && showRecord && (
+          <motion.p
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden text-xs text-text-muted"
+          >
+            <span className="block pb-1">
+              Рекорд:{" "}
+              <span className="text-accent">
+                {record.weight > 0
+                  ? `${formatValue(record.weight)} кг × ${record.reps}`
+                  : `${record.reps} повт.`}
+              </span>
+              {record.weight > 0 && ` (сила ≈ ${formatValue(record.strength)} кг)`} ·{" "}
+              {formatDate(record.date)}
+              {recordIndex < 0 && " · на этом графике его нет, посмотри «Год»"}
+            </span>
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       <div className="relative">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" aria-hidden>
@@ -149,9 +197,9 @@ export function ProgressChart({ series }: { series: Series }) {
           ))}
         </svg>
 
-        {/* Кубок над рекордной точкой, появляется после того, как линия дорисовалась */}
+        {/* Кубок над рекордной точкой: появляется по кнопке-кубку слева */}
         {points
-          .filter((p) => p.record)
+          .filter((p) => p.record && showRecord)
           .map((p) => (
             <motion.span
               key={`trophy-${drawKey}`}
@@ -163,7 +211,7 @@ export function ProgressChart({ series }: { series: Series }) {
               }}
               initial={{ opacity: 0, y: 6, scale: 0.5 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.8, type: "spring", stiffness: 400, damping: 18 }}
+              transition={{ type: "spring", stiffness: 400, damping: 18 }}
             >
               <Icon name="trophy" className="size-4" />
             </motion.span>
@@ -183,6 +231,11 @@ export function ProgressChart({ series }: { series: Series }) {
       </div>
     </div>
   );
+}
+
+// "2026-06-06" → "06.06.26"
+function formatDate(date: string): string {
+  return `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(2, 4)}`;
 }
 
 // Шкала по вертикали: «круглый» шаг (1, 2, 2,5, 5, 10…), 2–4 линии сетки
