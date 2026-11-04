@@ -6,7 +6,7 @@ import { useAppStore } from "../store/useAppStore";
 import { ProgressChart } from "./ProgressChart";
 
 // Окно с графиком: выезжает снизу по иконке графика на дне в истории.
-// Сверху упражнения этого дня, ниже переключатели «Вес / Объём» и «Месяц / Год».
+// Сверху упражнения этого дня, ниже переключатели «Сила / Объём» и «Месяц / Год».
 export function StatsSheet({ date, onClose }: { date: string | null; onClose: () => void }) {
   return (
     <AnimatePresence>
@@ -39,7 +39,7 @@ export function StatsSheet({ date, onClose }: { date: string | null; onClose: ()
 function DayStats({ date }: { date: string }) {
   const exercises = (useDay(date).data?.exercises ?? []).filter((e) => e.sets.length > 0);
   const [pickedId, setPickedId] = useState<string | null>(null);
-  const [metric, setMetric] = useState<Metric>("weight");
+  const [metric, setMetric] = useState<Metric>("strength");
   const [range, setRange] = useState<Range>("month");
   const current = exercises.find((e) => e.exercise_id === pickedId) ?? exercises[0];
 
@@ -65,7 +65,7 @@ function DayStats({ date }: { date: string }) {
           value={metric}
           onChange={setMetric}
           options={[
-            ["weight", "Вес"],
+            ["strength", "Сила"],
             ["volume", "Объём"],
           ]}
         />
@@ -116,9 +116,9 @@ function ExerciseChart({
         </p>
       )}
       <p className="mt-3 text-center text-[11px] text-text-faint">
-        {metric === "weight"
+        {metric === "strength"
           ? series.unit === "кг"
-            ? "Лучший вес за тренировку"
+            ? "Сила: сколько поднял бы на 1 раз, по лучшему подходу. Вес × (1 + повторы / 30)"
             : "Больше всего повторов в подходе"
           : series.unit === "кг"
             ? "Объём: сумма «вес × повторы» за тренировку"

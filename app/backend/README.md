@@ -55,7 +55,7 @@ tests/         # тесты (uv run pytest)
 | DELETE | `/api/days` | Удалить все тренировки (Reset data) |
 | GET/PUT | `/api/me` | Профиль и аватар |
 | GET | `/api/me/progress` | XP и уровень |
-| GET | `/api/exercises/{id}/stats?from=…&to=…` | Лучший вес, повторы и объём упражнения по дням (графики) |
+| GET | `/api/exercises/{id}/stats?from=…&to=…` | Сила (e1RM), лучший вес, повторы и объём упражнения по дням (графики) |
 
 ## Схема API для фронтенда
 

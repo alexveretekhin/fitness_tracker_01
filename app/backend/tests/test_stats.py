@@ -22,6 +22,7 @@ def test_best_weight_and_volume_per_day(client):
     assert s[0] == {
         "date": "2026-11-02",
         "best_weight": 65,
+        "best_e1rm": 80.0,  # 60 × (1 + 10/30) = 80 сильнее, чем 65 × (1 + 6/30) = 78
         "max_reps": 10,
         "volume": 600 + 390,
         "total_reps": 16,
@@ -46,3 +47,10 @@ def test_range_and_empty_days(client):
 def test_unknown_exercise(client):
     r = client.get("/api/exercises/nope/stats", params={"from": "2026-11-01", "to": "2026-11-30"})
     assert r.status_code == 404
+
+
+def test_e1rm_compares_heavy_and_light_sets(client):
+    _set(client, "2026-11-02", "barbell-bench", 20, 10)  # ≈ 26,7
+    _set(client, "2026-11-04", "barbell-bench", 40, 1)  # ровно 40, на 1 раз без формулы
+    s = _stats(client, "barbell-bench")
+    assert [p["best_e1rm"] for p in s] == [26.7, 40.0]
