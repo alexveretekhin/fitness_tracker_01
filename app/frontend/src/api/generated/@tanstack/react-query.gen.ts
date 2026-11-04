@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, addSet, clearDays, getDay, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
+import { addExercise, addSet, clearDays, getDay, getExerciseRecords, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordsData, GetExerciseRecordsError, GetExerciseRecordsResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -340,4 +340,24 @@ export const getExerciseStatsOptions = (options: Options<GetExerciseStatsData>) 
         return data;
     },
     queryKey: getExerciseStatsQueryKey(options)
+});
+
+export const getExerciseRecordsQueryKey = (options: Options<GetExerciseRecordsData>) => createQueryKey('getExerciseRecords', options);
+
+/**
+ * Get Exercise Records
+ *
+ * Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012).
+ */
+export const getExerciseRecordsOptions = (options: Options<GetExerciseRecordsData>) => queryOptions<GetExerciseRecordsResponse, GetExerciseRecordsError, GetExerciseRecordsResponse, ReturnType<typeof getExerciseRecordsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getExerciseRecords({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getExerciseRecordsQueryKey(options)
 });

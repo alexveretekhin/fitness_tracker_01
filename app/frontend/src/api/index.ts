@@ -5,6 +5,7 @@ import {
   clearDaysMutation,
   getDayOptions,
   getDayQueryKey,
+  getExerciseRecordsOptions,
   getExerciseStatsOptions,
   getMeOptions,
   getMeQueryKey,
@@ -34,9 +35,11 @@ export type {
   DayOut,
   DaySummary,
   ExerciseOut,
+  ExerciseRecords,
   ExerciseStat,
   MuscleGroupOut,
   Progress,
+  RepRecord,
   SetIn,
   SetOut,
 } from "./generated/types.gen";
@@ -103,6 +106,7 @@ function onDaySaved(day: DayOut) {
   queryClient.invalidateQueries({ queryKey: [{ _id: "getProgress" }] });
   // Подход поменялся: графики в истории перерисуются
   queryClient.invalidateQueries({ queryKey: [{ _id: "getExerciseStats" }] });
+  queryClient.invalidateQueries({ queryKey: [{ _id: "getExerciseRecords" }] });
 }
 
 export function useDayMutations() {
@@ -139,4 +143,9 @@ export function useExerciseStats(exerciseId: string, from: string, to: string) {
   return useQuery(
     getExerciseStatsOptions({ path: { exercise_id: exerciseId }, query: { from, to } }),
   );
+}
+
+// Рекорды за всё время: лучший вес на 1, 3, 5, 8, 10 повторов (таблица под графиком)
+export function useExerciseRecords(exerciseId: string) {
+  return useQuery(getExerciseRecordsOptions({ path: { exercise_id: exerciseId } }));
 }

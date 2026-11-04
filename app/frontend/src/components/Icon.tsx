@@ -7,10 +7,11 @@ import play from "../assets/icons/play.svg?raw";
 import plus from "../assets/icons/plus.svg?raw";
 import search from "../assets/icons/search.svg?raw";
 import settings from "../assets/icons/settings.svg?raw";
+import trophy from "../assets/icons/trophy.svg?raw";
 
 // "?raw" — Vite отдаёт файл как строку. Вставляем SVG прямо в разметку,
 // поэтому иконка берёт цвет из CSS-свойства color (currentColor).
-const icons = { chart, flame, folder, history, mic, play, plus, search, settings };
+const icons = { chart, flame, folder, history, mic, play, plus, search, settings, trophy };
 
 export type IconName = keyof typeof icons;
 

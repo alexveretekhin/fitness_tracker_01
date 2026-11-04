@@ -13,7 +13,8 @@ from sqlmodel import case, col, func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
-from app.schemas import ExerciseStat
+from app.records import load_sets, rep_records
+from app.schemas import ExerciseRecords, ExerciseStat, RepRecord
 
 router = APIRouter(tags=["stats"])
 
@@ -71,3 +72,17 @@ def get_exercise_stats(
         )
         for date, best, e1rm, reps, volume, total, n in rows
     ]
+
+
+@router.get("/exercises/{exercise_id}/records", response_model=ExerciseRecords)
+def get_exercise_records(exercise_id: str, session: SessionDep, user: CurrentUser):
+    """Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012)."""
+    if session.get(Exercise, exercise_id) is None:
+        raise HTTPException(404, f"Нет упражнения '{exercise_id}'")
+    table, bodyweight = rep_records(load_sets(session, user.id, exercise_id))
+    return ExerciseRecords(
+        by_reps=[RepRecord(reps=r.reps, weight=r.weight, date=r.date) for r in table],
+        bodyweight=RepRecord(reps=bodyweight.reps, weight=0, date=bodyweight.date)
+        if bodyweight
+        else None,
+    )

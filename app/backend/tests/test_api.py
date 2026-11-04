@@ -59,7 +59,9 @@ def test_add_sets_and_flame(client):
     assert [s["reps"] for s in r.json()["exercises"][0]["sets"]] == [15, 12]
 
     summary = client.get("/api/days", params={"from": "2026-10-20", "to": "2026-10-28"}).json()
-    assert summary == [{"date": DAY, "done": True, "count": 1, "done_exercises": ["Push-ups"]}]
+    assert summary == [
+        {"date": DAY, "done": True, "count": 1, "done_exercises": ["Push-ups"], "records": 0}
+    ]
 
 
 def test_update_and_remove_set(client):
@@ -69,7 +71,9 @@ def test_update_and_remove_set(client):
     set_id = day["exercises"][0]["sets"][0]["id"]
 
     r = client.put(f"{url}/{set_id}", json={"weight": 62.5, "reps": 8})
-    assert r.json()["exercises"][0]["sets"] == [{"id": set_id, "weight": 62.5, "reps": 8}]
+    assert r.json()["exercises"][0]["sets"] == [
+        {"id": set_id, "weight": 62.5, "reps": 8, "record": False}
+    ]
 
     # Удалили единственный подход: огонёк гаснет
     r = client.delete(f"{url}/{set_id}")
@@ -90,7 +94,7 @@ def test_set_of_other_exercise_is_404(client):
 def test_days_without_sets_are_not_done(client):
     _add(client, "squat")
     summary = client.get("/api/days", params={"from": DAY, "to": DAY}).json()
-    assert summary == [{"date": DAY, "done": False, "count": 1, "done_exercises": []}]
+    assert summary == [{"date": DAY, "done": False, "count": 1, "done_exercises": [], "records": 0}]
 
 
 def test_remove_exercise_with_sets(client):

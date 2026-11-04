@@ -75,6 +75,10 @@ export type DaySummary = {
      * Done Exercises
      */
     done_exercises: Array<string>;
+    /**
+     * Records
+     */
+    records?: number;
 };
 
 /**
@@ -97,6 +101,17 @@ export type ExerciseOut = {
      * Primary Muscles
      */
     primary_muscles: Array<string>;
+};
+
+/**
+ * ExerciseRecords
+ */
+export type ExerciseRecords = {
+    /**
+     * By Reps
+     */
+    by_reps: Array<RepRecord>;
+    bodyweight: RepRecord | null;
 };
 
 /**
@@ -208,6 +223,26 @@ export type Progress = {
 };
 
 /**
+ * RepRecord
+ *
+ * Строка таблицы рекордов: лучший вес на столько повторов и когда он был.
+ */
+export type RepRecord = {
+    /**
+     * Reps
+     */
+    reps: number;
+    /**
+     * Weight
+     */
+    weight: number;
+    /**
+     * Date
+     */
+    date: string;
+};
+
+/**
  * SetIn
  *
  * Один подход из карточки. Вес 0 = упражнение с собственным весом.
@@ -239,6 +274,10 @@ export type SetOut = {
      * Reps
      */
     reps: number;
+    /**
+     * Record
+     */
+    record?: boolean;
 };
 
 /**
@@ -724,3 +763,33 @@ export type GetExerciseStatsResponses = {
 };
 
 export type GetExerciseStatsResponse = GetExerciseStatsResponses[keyof GetExerciseStatsResponses];
+
+export type GetExerciseRecordsData = {
+    body?: never;
+    path: {
+        /**
+         * Exercise Id
+         */
+        exercise_id: string;
+    };
+    query?: never;
+    url: '/api/exercises/{exercise_id}/records';
+};
+
+export type GetExerciseRecordsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetExerciseRecordsError = GetExerciseRecordsErrors[keyof GetExerciseRecordsErrors];
+
+export type GetExerciseRecordsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ExerciseRecords;
+};
+
+export type GetExerciseRecordsResponse = GetExerciseRecordsResponses[keyof GetExerciseRecordsResponses];
