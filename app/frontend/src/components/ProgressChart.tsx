@@ -7,7 +7,7 @@ import { Icon } from "./Icon";
 //
 //   ≈ 72,5 кг · 4 ноя        ← выбранная точка (по умолчанию последняя)
 //   ┊ 75 ─────────────────
-//   ┊ 65 ──────●──────●───   оранжевая линия, под ней прозрачная заливка
+//   ┊ 65 ──────●──────●───   серая линия и заливка, выбранная точка оранжевая
 //   ┊ 55 ──●──────────────   серые линии сетки и подписи
 //      06.10   16.10   26.10
 //
@@ -82,7 +82,7 @@ export function ProgressChart({ series, recordLabel }: Props) {
         </span>
         {selected.record && (
           <span className="ml-1.5 text-accent">
-            <Icon name="trophy" className="size-3.5 align-[-2px]" /> рекорд
+            <Icon name="trophy" className="size-3.5 align-[-2px]" />
           </span>
         )}
       </p>
@@ -91,8 +91,8 @@ export function ProgressChart({ series, recordLabel }: Props) {
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" aria-hidden>
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="var(--color-accent)" stopOpacity="0.35" />
-              <stop offset="1" stopColor="var(--color-accent)" stopOpacity="0" />
+              <stop offset="0" stopColor="var(--color-text-muted)" stopOpacity="0.3" />
+              <stop offset="1" stopColor="var(--color-text-muted)" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -152,7 +152,7 @@ export function ProgressChart({ series, recordLabel }: Props) {
             key={`line-${drawKey}`}
             d={line}
             fill="none"
-            stroke="var(--color-accent)"
+            stroke="var(--color-text-muted)"
             strokeWidth="2"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -167,7 +167,7 @@ export function ProgressChart({ series, recordLabel }: Props) {
               cy={py(p.value)}
               r={p === selected ? 4.5 : 3}
               fill={p === selected ? "var(--color-accent)" : "var(--color-surface)"}
-              stroke="var(--color-accent)"
+              stroke={p === selected ? "var(--color-accent)" : "var(--color-text-muted)"}
               strokeWidth="2"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
