@@ -41,15 +41,8 @@ export function Profile() {
                 ? "максимальный уровень"
                 : `до уровня ${p.level + 1}: ${p.level_to - p.xp} XP`}
             </p>
-            <p className="mt-6 text-sm">
-              Серия: <span className="text-accent">{p.streak_weeks} нед.</span>
-            </p>
-            <p className="text-xs text-text-muted">
-              на этой неделе {p.week_workouts} из {p.week_goal}
-              {p.week_frozen && " · заморожена ❄"}
-            </p>
             <p className="mt-6 px-6 text-center text-[11px] text-text-faint">
-              50 XP за каждый день с тренировкой. Неделя засчитана при 3 тренировках.
+              50 XP за каждый день с тренировкой.
             </p>
             <button
               type="button"
