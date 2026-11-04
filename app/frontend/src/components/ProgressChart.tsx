@@ -80,11 +80,6 @@ export function ProgressChart({ series, recordLabel }: Props) {
         <span className="text-text-muted">
           {unit} · {selected.label}
         </span>
-        {selected.record && (
-          <span className="ml-1.5 text-accent">
-            <Icon name="trophy" className="size-3.5 align-[-2px]" />
-          </span>
-        )}
       </p>
 
       <div ref={boxRef} className="relative">
