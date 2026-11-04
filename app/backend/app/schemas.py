@@ -67,3 +67,14 @@ class MeOut(BaseModel):
 
 class MeUpdate(BaseModel):
     avatar: Avatar
+
+
+class ExerciseStat(BaseModel):
+    """Итог одного упражнения за один день, точка на графике в истории."""
+
+    date: dt.date
+    best_weight: float  # самый тяжёлый подход за день, кг
+    max_reps: int  # больше всего повторов в одном подходе (для упражнений без веса)
+    volume: float  # объём: сумма «вес × повторы» по всем подходам
+    total_reps: int  # все повторы за день (объём для упражнений без веса)
+    sets: int

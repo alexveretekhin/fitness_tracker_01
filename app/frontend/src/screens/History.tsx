@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { type DaySummary, useDay, useDays } from "../api";
 import { DayCalendar } from "../components/DayCalendar";
+import { Icon } from "../components/Icon";
+import { StatsSheet } from "../components/StatsSheet";
 import { ListRow, Panel, QueryState } from "../components/ui";
 import { addDays, dayKey, fromDayKey, useAppStore } from "../store/useAppStore";
 
@@ -12,10 +14,11 @@ function formatDate(date: string): string {
 
 // История: сверху календарь (лента с огоньками, раскрывается в месяц с точками),
 // ниже дни с тренировками за год, новые сверху. Тап по дню раскрывает под ним
-// упражнения с подходами и весом.
+// упражнения с подходами и весом. Иконка графика справа открывает прогресс.
 export function History() {
   const today = fromDayKey(useAppStore((s) => s.today));
   const [openDate, setOpenDate] = useState<string | null>(null);
+  const [statsDate, setStatsDate] = useState<string | null>(null);
   const days = useDays(dayKey(addDays(today, -365)), dayKey(addDays(today, 7)));
 
   const list = (days.data ?? []).filter((d) => d.done);
@@ -44,24 +47,44 @@ export function History() {
               day={d}
               open={d.date === openDate}
               onToggle={() => setOpenDate(d.date === openDate ? null : d.date)}
+              onStats={() => setStatsDate(d.date)}
             />
           ))
         )}
       </Panel>
+
+      <StatsSheet date={statsDate} onClose={() => setStatsDate(null)} />
     </>
   );
 }
 
-type GroupProps = { day: DaySummary; open: boolean; onToggle: () => void };
+type GroupProps = {
+  day: DaySummary;
+  open: boolean;
+  onToggle: () => void;
+  onStats: () => void;
+};
 
 // Строка дня. Раскрывается вниз так же, как демо техники в списке упражнений.
-function DayGroup({ day, open, onToggle }: GroupProps) {
+function DayGroup({ day, open, onToggle, onStats }: GroupProps) {
   const ref = useRef<HTMLDivElement>(null);
   return (
     <div ref={ref}>
       <ListRow
         onClick={onToggle}
-        right={<span className="text-xs text-text-muted">{day.done_exercises.length} упр.</span>}
+        right={
+          <>
+            <span className="text-xs text-text-muted">{day.done_exercises.length} упр.</span>
+            <button
+              type="button"
+              onClick={onStats}
+              aria-label={`График прогресса за ${formatDate(day.date)}`}
+              className="grid size-tap place-items-center text-text-muted active:text-accent"
+            >
+              <Icon name="chart" className="size-5" />
+            </button>
+          </>
+        }
       >
         <span className="text-accent">{formatDate(day.date)}</span>
       </ListRow>

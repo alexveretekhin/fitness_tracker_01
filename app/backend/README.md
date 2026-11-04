@@ -32,6 +32,7 @@ app/
     days.py    # /api/days: упражнения дня, подходы, огоньки
     me.py      # /api/me: аватар
     progress.py # /api/me/progress: XP и уровень
+    stats.py   # /api/exercises/{id}/stats: данные для графиков в истории
 migrations/    # история изменений схемы базы (Alembic)
 tests/         # тесты (uv run pytest)
 ```
@@ -54,6 +55,7 @@ tests/         # тесты (uv run pytest)
 | DELETE | `/api/days` | Удалить все тренировки (Reset data) |
 | GET/PUT | `/api/me` | Профиль и аватар |
 | GET | `/api/me/progress` | XP и уровень |
+| GET | `/api/exercises/{id}/stats?from=…&to=…` | Лучший вес, повторы и объём упражнения по дням (графики) |
 
 ## Схема API для фронтенда
 

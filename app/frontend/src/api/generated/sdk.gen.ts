@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -138,3 +138,12 @@ export const updateMe = <ThrowOnError extends boolean = false>(options: Options<
  * Get Progress
  */
 export const getProgress = <ThrowOnError extends boolean = false>(options?: Options<GetProgressData, ThrowOnError>): RequestResult<GetProgressResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetProgressResponses, unknown, ThrowOnError>({ url: '/api/me/progress', ...options });
+
+/**
+ * Get Exercise Stats
+ *
+ * Лучший вес, повторы и объём за каждый день с этим упражнением, по порядку дат.
+ *
+ * Дни, где упражнение добавлено, но подходов нет, не попадают.
+ */
+export const getExerciseStats = <ThrowOnError extends boolean = false>(options: Options<GetExerciseStatsData, ThrowOnError>): RequestResult<GetExerciseStatsResponses, GetExerciseStatsErrors, ThrowOnError> => (options.client ?? client).get<GetExerciseStatsResponses, GetExerciseStatsErrors, ThrowOnError>({ url: '/api/exercises/{exercise_id}/stats', ...options });
