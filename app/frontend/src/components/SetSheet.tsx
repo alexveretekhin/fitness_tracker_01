@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DayExerciseOut, SetIn, SetOut } from "../api";
+import { Icon } from "./Icon";
 import { VoiceInput } from "./VoiceInput";
 
 type Props = {
@@ -78,8 +79,26 @@ function SetEditor({
 
   const value = parse(draft);
 
+  // «Новый рекорд!»: после сохранения сервер присылает подходы заново.
+  // Если кубок появился на другом подходе, чем был до нажатия, показываем надпись.
+  const recordId = sets.find((s) => s.record)?.id ?? null;
+  const prevRecordId = useRef(recordId);
+  const waitingAnswer = useRef(false);
+  const [celebrate, setCelebrate] = useState(false);
+
+  useEffect(() => {
+    const isNew = waitingAnswer.current && recordId !== null && recordId !== prevRecordId.current;
+    prevRecordId.current = recordId;
+    waitingAnswer.current = false;
+    if (!isNew) return;
+    setCelebrate(true);
+    const timer = setTimeout(() => setCelebrate(false), 2000);
+    return () => clearTimeout(timer);
+  }, [recordId]);
+
   const submit = () => {
     if (!value) return;
+    waitingAnswer.current = true;
     if (editingId === null) {
       onAdd(value);
     } else {
@@ -101,7 +120,23 @@ function SetEditor({
 
   return (
     <>
-      <h3 className="mb-3 text-lg">{exercise.name}</h3>
+      <div className="relative mb-3 flex items-center">
+        <h3 className="flex-1 text-lg">{exercise.name}</h3>
+        <AnimatePresence>
+          {celebrate && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.6, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="flex items-center gap-1 text-sm font-bold text-accent"
+            >
+              <Icon name="trophy" className="size-4" />
+              Новый рекорд!
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
 
       {sets.length > 0 && (
         <ol className="mb-3">
@@ -119,6 +154,7 @@ function SetEditor({
               >
                 <span className="w-5 text-text-muted">{i + 1}</span>
                 <span>{formatSet(s)}</span>
+                {s.record && <Icon name="trophy" className="size-4 text-accent" />}
               </button>
               <button
                 type="button"

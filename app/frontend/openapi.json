@@ -713,6 +713,49 @@
           }
         }
       }
+    },
+    "/api/exercises/{exercise_id}/records": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Get Exercise Records",
+        "description": "Таблица рекордов за всё время: лучший вес на 1, 3, 5, 8 и 10 повторов (ADR 0012).",
+        "operationId": "get_exercise_records",
+        "parameters": [
+          {
+            "name": "exercise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exercise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseRecords"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -812,6 +855,11 @@
             },
             "type": "array",
             "title": "Done Exercises"
+          },
+          "records": {
+            "type": "integer",
+            "title": "Records",
+            "default": 0
           }
         },
         "type": "object",
@@ -860,6 +908,33 @@
           "primary_muscles"
         ],
         "title": "ExerciseOut"
+      },
+      "ExerciseRecords": {
+        "properties": {
+          "by_reps": {
+            "items": {
+              "$ref": "#/components/schemas/RepRecord"
+            },
+            "type": "array",
+            "title": "By Reps"
+          },
+          "bodyweight": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "by_reps",
+          "bodyweight"
+        ],
+        "title": "ExerciseRecords"
       },
       "ExerciseStat": {
         "properties": {
@@ -1021,6 +1096,31 @@
         ],
         "title": "Progress"
       },
+      "RepRecord": {
+        "properties": {
+          "reps": {
+            "type": "integer",
+            "title": "Reps"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reps",
+          "weight",
+          "date"
+        ],
+        "title": "RepRecord",
+        "description": "Строка таблицы рекордов: лучший вес на столько повторов и когда он был."
+      },
       "SetIn": {
         "properties": {
           "weight": {
@@ -1057,6 +1157,11 @@
           "reps": {
             "type": "integer",
             "title": "Reps"
+          },
+          "record": {
+            "type": "boolean",
+            "title": "Record",
+            "default": false
           }
         },
         "type": "object",

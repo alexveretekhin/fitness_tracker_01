@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { useDay, useExerciseStats } from "../api";
+import { useDay, useExerciseRecords, useExerciseStats } from "../api";
 import { buildSeries, formatValue, type Metric, type Range, since } from "../lib/stats";
 import { useAppStore } from "../store/useAppStore";
+import { Icon } from "./Icon";
 import { ProgressChart } from "./ProgressChart";
 
 // Окно с графиком: выезжает снизу по иконке графика на дне в истории.
@@ -79,7 +80,12 @@ function DayStats({ date }: { date: string }) {
         />
       </div>
 
-      {current && <ExerciseChart exerciseId={current.exercise_id} metric={metric} range={range} />}
+      {current && (
+        <>
+          <ExerciseChart exerciseId={current.exercise_id} metric={metric} range={range} />
+          <RecordsTable exerciseId={current.exercise_id} />
+        </>
+      )}
     </>
   );
 }
@@ -126,6 +132,51 @@ function ExerciseChart({
         {range === "year" && ", лучшая тренировка месяца"}
       </p>
     </>
+  );
+}
+
+// "2026-10-12" → "12.10.26"
+function shortDate(date: string): string {
+  return `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(2, 4)}`;
+}
+
+// Рекорды за всё время. Строка «5 повт.» = лучший вес, который поднял
+// хотя бы 5 раз подряд. Так 40 кг × 1 и 20 кг × 10 не спорят, а стоят в разных строках.
+function RecordsTable({ exerciseId }: { exerciseId: string }) {
+  const records = useExerciseRecords(exerciseId).data;
+  if (!records || (records.by_reps.length === 0 && !records.bodyweight)) return null;
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <h4 className="mb-2 flex items-center gap-1.5 text-sm">
+        <Icon name="trophy" className="size-4 text-accent" />
+        Рекорды
+      </h4>
+      <ul className="text-sm">
+        {records.by_reps.map((r) => (
+          <li
+            key={r.reps}
+            className="flex items-center border-b border-border/50 py-1.5 last:border-0"
+          >
+            <span className="w-24 text-text-muted">{r.reps} повт.</span>
+            <span className="flex-1 text-accent">{formatValue(r.weight)} кг</span>
+            <span className="text-xs text-text-faint">{shortDate(r.date)}</span>
+          </li>
+        ))}
+        {records.bodyweight && (
+          <li className="flex items-center py-1.5">
+            <span className="w-24 text-text-muted">без веса</span>
+            <span className="flex-1 text-accent">{records.bodyweight.reps} повт.</span>
+            <span className="text-xs text-text-faint">{shortDate(records.bodyweight.date)}</span>
+          </li>
+        )}
+      </ul>
+      {records.by_reps.length > 0 && (
+        <p className="mt-2 text-center text-[11px] text-text-faint">
+          Лучший вес, который поднял столько раз или больше
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@ function formatDate(date: string): string {
 // История: сверху календарь (лента с огоньками, раскрывается в месяц с точками),
 // ниже дни с тренировками за год, новые сверху. Тап по дню раскрывает под ним
 // упражнения с подходами и весом. Иконка графика справа открывает прогресс.
+// Оранжевый кубок = в этот день побит рекорд (ADR 0012).
 export function History() {
   const today = fromDayKey(useAppStore((s) => s.today));
   const [openDate, setOpenDate] = useState<string | null>(null);
@@ -74,6 +75,15 @@ function DayGroup({ day, open, onToggle, onStats }: GroupProps) {
         onClick={onToggle}
         right={
           <>
+            {(day.records ?? 0) > 0 && (
+              <span
+                className="mr-2 flex items-center gap-0.5 text-xs text-accent"
+                title="Рекорды в этот день"
+              >
+                <Icon name="trophy" className="size-4" />
+                {(day.records ?? 0) > 1 && day.records}
+              </span>
+            )}
             <span className="text-xs text-text-muted">{day.done_exercises.length} упр.</span>
             <button
               type="button"
@@ -131,6 +141,9 @@ function DayDetails({ date }: { date: string }) {
             >
               <span className={`text-text-muted transition ${open ? "rotate-90" : ""}`}>›</span>
               <span className="flex-1">{e.name}</span>
+              {e.sets.some((s) => s.record) && (
+                <Icon name="trophy" className="size-4 text-accent" />
+              )}
               <span className="text-xs text-text-muted">{e.sets.length} подх.</span>
             </button>
             <AnimatePresence initial={false}>
@@ -149,6 +162,9 @@ function DayDetails({ date }: { date: string }) {
                       <span className="inline-block w-5">{i + 1}</span>
                       {/* В истории вес пишем всегда, даже 0, чтобы было видно, с чем делал */}
                       {s.weight} кг × {s.reps} повт.
+                      {s.record && (
+                        <Icon name="trophy" className="ml-1.5 size-3.5 align-[-2px] text-accent" />
+                      )}
                     </li>
                   ))}
                 </motion.ol>

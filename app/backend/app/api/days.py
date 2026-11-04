@@ -12,6 +12,7 @@ from sqlmodel import col, delete, func, select
 
 from app.deps import CurrentUser, SessionDep
 from app.models import DayExercise, Exercise, WorkoutDay, WorkoutSet
+from app.records import load_sets, record_set_ids
 from app.schemas import AddExerciseIn, DayExerciseOut, DayOut, DaySummary, SetIn, SetOut
 
 router = APIRouter(prefix="/days", tags=["days"])
@@ -23,7 +24,9 @@ def _get_day(session: SessionDep, user_id: int, date: dt.date) -> WorkoutDay | N
     ).first()
 
 
-def _sets_of(session: SessionDep, entry_ids: list[int]) -> dict[int, list[SetOut]]:
+def _sets_of(
+    session: SessionDep, entry_ids: list[int], records: set[int]
+) -> dict[int, list[SetOut]]:
     """Подходы для нескольких упражнений дня одним запросом."""
     rows = session.exec(
         select(WorkoutSet)
@@ -33,7 +36,7 @@ def _sets_of(session: SessionDep, entry_ids: list[int]) -> dict[int, list[SetOut
     result: dict[int, list[SetOut]] = {}
     for s in rows:
         result.setdefault(s.day_exercise_id, []).append(
-            SetOut(id=s.id, weight=s.weight, reps=s.reps)
+            SetOut(id=s.id, weight=s.weight, reps=s.reps, record=s.id in records)
         )
     return result
 
@@ -47,7 +50,8 @@ def _day_out(session: SessionDep, date: dt.date, day: WorkoutDay | None) -> DayO
         .where(DayExercise.day_id == day.id)
         .order_by(DayExercise.position)
     ).all()
-    sets = _sets_of(session, [de.id for de, _ in rows])
+    records = record_set_ids(load_sets(session, day.user_id))
+    sets = _sets_of(session, [de.id for de, _ in rows], records)
     items = [
         DayExerciseOut(exercise_id=de.exercise_id, name=ex.name, sets=sets.get(de.id, []))
         for de, ex in rows
@@ -107,6 +111,12 @@ def list_days(
         if n_sets:
             day.done = True
             day.done_exercises.append(name)
+    # Кубки: сколько рекордных подходов в каждом дне
+    all_sets = load_sets(session, user.id)
+    records = record_set_ids(all_sets)
+    for s in all_sets:
+        if s.id in records and s.date in days:
+            days[s.date].records += 1
     return list(days.values())
 
 
