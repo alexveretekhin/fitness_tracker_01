@@ -1,12 +1,11 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useProgress } from "../api";
-import { Icon } from "./Icon";
 
-// Под календарём на главной: недельная серия и тонкая полоска XP.
+// Под календарём на главной: уровень и тонкая полоска XP.
 //
-//   🔥 4 нед. ●●○                 ур. 1 · 650/2000
-//   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//   ур. 1                                 650/2000 XP
+//   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //
 // Когда XP вырос (первый подход за день), полоска плавно доливается
 // и над ней всплывает «+50».
@@ -27,34 +26,14 @@ export function XpBar() {
 
   if (!progress) return <div className="h-7" />;
 
-  const { xp, level, level_from, level_to, streak_weeks, week_workouts, week_goal, week_frozen } =
-    progress;
+  const { xp, level, level_from, level_to } = progress;
   const share = level_to === null ? 1 : (xp - level_from) / (level_to - level_from);
 
   return (
     <div className="relative px-1.5 pt-1 pb-0.5">
       <div className="flex items-center justify-between text-[11px] text-text-muted">
-        <span className="flex items-center gap-1.5">
-          <Icon
-            name="flame"
-            className={`size-3.5 ${streak_weeks > 0 ? "text-flame-on" : "text-flame-off"}`}
-          />
-          <span className={streak_weeks > 0 ? "text-text" : ""}>{streak_weeks} нед.</span>
-          {/* Тренировки этой недели: ●●○ = 2 из 3 */}
-          <span title={`На этой неделе ${week_workouts} из ${week_goal}`} className="flex gap-0.5">
-            {Array.from({ length: week_goal }, (_, i) => (
-              <span
-                // biome-ignore lint/suspicious/noArrayIndexKey: точек всегда три, порядок не меняется
-                key={i}
-                className={`size-1.5 rounded-full ${i < week_workouts ? "bg-dot" : "bg-flame-off"}`}
-              />
-            ))}
-          </span>
-          {week_frozen && <span title="Неделя заморожена">❄</span>}
-        </span>
-        <span>
-          ур. {level} · {level_to === null ? `${xp} XP` : `${xp}/${level_to}`}
-        </span>
+        <span className="text-text">ур. {level}</span>
+        <span>{level_to === null ? `${xp} XP` : `${xp}/${level_to} XP`}</span>
       </div>
 
       <div className="mt-1 h-1 overflow-hidden rounded-full bg-flame-off">

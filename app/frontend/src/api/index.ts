@@ -1,26 +1,22 @@
 import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import { useAppStore } from "../store/useAppStore";
 import {
   addExerciseMutation,
   addSetMutation,
   clearDaysMutation,
-  freezeWeekMutation,
   getDayOptions,
   getDayQueryKey,
   getMeOptions,
   getMeQueryKey,
   getProgressOptions,
-  getProgressQueryKey,
   listDaysOptions,
   listMuscleGroupsOptions,
   removeExerciseMutation,
   removeSetMutation,
   searchExercisesOptions,
-  unfreezeWeekMutation,
   updateMeMutation,
   updateSetMutation,
 } from "./generated/@tanstack/react-query.gen";
-import type { DayOut, ExerciseOut, Progress } from "./generated/types.gen";
+import type { DayOut, ExerciseOut } from "./generated/types.gen";
 
 // Всё общение с бэкендом идёт через этот модуль.
 //
@@ -126,25 +122,8 @@ export function useClearDays() {
   });
 }
 
-// ---------- XP, уровень, недельная серия ----------
+// ---------- XP и уровень ----------
 
-// «Сегодня» берём с телефона: сервер не знает часовой пояс пользователя
 export function useProgress() {
-  const today = useAppStore((s) => s.today);
-  return useQuery({ ...getProgressOptions({ query: { today } }), staleTime: 0 });
-}
-
-// Заморозить или разморозить текущую неделю. Сервер отвечает новым прогрессом.
-export function useFreeze() {
-  const today = useAppStore((s) => s.today);
-  const onSuccess = (p: Progress) =>
-    queryClient.setQueryData(getProgressQueryKey({ query: { today } }), p);
-  const freeze = useMutation({ ...freezeWeekMutation(), onSuccess });
-  const unfreeze = useMutation({ ...unfreezeWeekMutation(), onSuccess });
-  return {
-    freeze: () => freeze.mutate({ query: { today } }),
-    unfreeze: () => unfreeze.mutate({ query: { today } }),
-    isPending: freeze.isPending || unfreeze.isPending,
-    error: freeze.error ?? unfreeze.error,
-  };
+  return useQuery({ ...getProgressOptions(), staleTime: 0 });
 }

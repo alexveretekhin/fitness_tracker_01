@@ -26,12 +26,12 @@ app/
   deps.py      # общие зависимости: сессия базы, текущий пользователь
   catalog.py   # стартовый список мышц и упражнений
   seed.py      # заливает каталог в базу
-  progress.py  # правила XP, уровней и недельной серии (числа меняются здесь)
+  progress.py  # правила XP и уровней (числа меняются здесь)
   api/
     catalog.py # /api/muscle-groups, /api/exercises
     days.py    # /api/days: упражнения дня, подходы, огоньки
     me.py      # /api/me: аватар
-    progress.py # /api/me/progress, /api/me/freeze: XP, уровень, серия
+    progress.py # /api/me/progress: XP и уровень
 migrations/    # история изменений схемы базы (Alembic)
 tests/         # тесты (uv run pytest)
 ```
@@ -51,10 +51,9 @@ tests/         # тесты (uv run pytest)
 | POST | `/api/days/{date}/exercises/{id}/sets` | Записать подход: вес и повторы |
 | PUT | `/api/days/{date}/exercises/{id}/sets/{set_id}` | Исправить подход |
 | DELETE | `/api/days/{date}/exercises/{id}/sets/{set_id}` | Удалить подход |
-| DELETE | `/api/days` | Удалить все тренировки и заморозки (Reset data) |
+| DELETE | `/api/days` | Удалить все тренировки (Reset data) |
 | GET/PUT | `/api/me` | Профиль и аватар |
-| GET | `/api/me/progress?today=…` | XP, уровень, недельная серия, тренировки этой недели |
-| POST / DELETE | `/api/me/freeze?today=…` | Заморозить текущую неделю / отменить |
+| GET | `/api/me/progress` | XP и уровень |
 
 ## Схема API для фронтенда
 
