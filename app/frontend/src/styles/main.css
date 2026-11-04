@@ -14,4 +14,34 @@
   button {
     cursor: pointer;
   }
+
+  /* Полоса прокрутки в нашем стиле вместо белой системной (Windows).
+     Chrome, Edge, Safari: тонкий тёмный бегунок без стрелок, при наведении оранжевый. */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover,
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--color-accent);
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  /* Firefox не знает ::-webkit-scrollbar, ему стандартные свойства */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-scrollbar) transparent;
+    }
+  }
 }
