@@ -85,3 +85,25 @@ describe("niceScale", () => {
     expect(hi).toBeGreaterThan(60);
   });
 });
+
+describe("кубок рекордной тренировки", () => {
+  const stats = [stat("2026-10-20", 60, 10), stat("2026-11-02", 70, 5), stat("2026-11-04", 65, 5)];
+
+  it("на «Месяце» помечает точку рекордного дня", () => {
+    const s = buildSeries(stats, "strength", "month", "2026-11-04", "2026-10-20");
+    expect(s.points.map((p) => p.record)).toEqual([true, false, false]);
+  });
+
+  it("на «Годе» помечает месяц рекорда", () => {
+    const s = buildSeries(stats, "strength", "year", "2026-11-04", "2026-11-02");
+    expect(s.points.map((p) => [p.label, p.record])).toEqual([
+      ["окт 2026", false],
+      ["ноя 2026", true],
+    ]);
+  });
+
+  it("на «Объёме» кубка нет", () => {
+    const s = buildSeries(stats, "volume", "month", "2026-11-04", "2026-10-20");
+    expect(s.points.some((p) => p.record)).toBe(false);
+  });
+});

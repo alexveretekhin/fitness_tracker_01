@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useId, useState } from "react";
 import { formatValue, type Series } from "../lib/stats";
+import { Icon } from "./Icon";
 
 // Линейный график прогресса, нарисован на SVG вручную (ADR 0010).
 //
@@ -11,6 +12,7 @@ import { formatValue, type Series } from "../lib/stats";
 //      06.10   16.10   26.10
 //
 // Тап по точке показывает её дату и значение.
+// Над точкой рекордной тренировки стоит оранжевый кубок.
 
 const W = 320;
 const H = 170;
@@ -51,6 +53,11 @@ export function ProgressChart({ series }: { series: Series }) {
         <span className="text-text-muted">
           {unit} · {selected.label}
         </span>
+        {selected.record && (
+          <span className="ml-1.5 text-accent">
+            <Icon name="trophy" className="size-3.5 align-[-2px]" /> рекорд
+          </span>
+        )}
       </p>
 
       <div className="relative">
@@ -142,12 +149,32 @@ export function ProgressChart({ series }: { series: Series }) {
           ))}
         </svg>
 
+        {/* Кубок над рекордной точкой, появляется после того, как линия дорисовалась */}
+        {points
+          .filter((p) => p.record)
+          .map((p) => (
+            <motion.span
+              key={`trophy-${drawKey}`}
+              aria-hidden
+              className="pointer-events-none absolute -translate-x-1/2 text-accent"
+              style={{
+                left: `${(px(p.x) / W) * 100}%`,
+                top: `calc(${(py(p.value) / H) * 100}% - 26px)`,
+              }}
+              initial={{ opacity: 0, y: 6, scale: 0.5 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.8, type: "spring", stiffness: 400, damping: 18 }}
+            >
+              <Icon name="trophy" className="size-4" />
+            </motion.span>
+          ))}
+
         {/* Невидимые кнопки поверх точек: в них удобно попасть пальцем */}
         {points.map((p, i) => (
           <button
             type="button"
             key={`${p.x}-${p.label}`}
-            aria-label={`${p.label}: ${formatValue(p.value)} ${unit}`}
+            aria-label={`${p.label}: ${formatValue(p.value)} ${unit}${p.record ? ", рекорд" : ""}`}
             onClick={() => setPicked(i)}
             className="absolute size-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{ left: `${(px(p.x) / W) * 100}%`, top: `${(py(p.value) / H) * 100}%` }}

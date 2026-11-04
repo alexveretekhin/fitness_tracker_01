@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useDay, useExerciseRecord, useExerciseStats } from "../api";
 import { buildSeries, formatValue, type Metric, type Range, since } from "../lib/stats";
 import { useAppStore } from "../store/useAppStore";
-import { Icon } from "./Icon";
 import { ProgressChart } from "./ProgressChart";
 
 // Окно с графиком: выезжает снизу по иконке графика на дне в истории.
@@ -80,12 +79,7 @@ function DayStats({ date }: { date: string }) {
         />
       </div>
 
-      {current && (
-        <>
-          <ExerciseChart exerciseId={current.exercise_id} metric={metric} range={range} />
-          <RecordLine exerciseId={current.exercise_id} />
-        </>
-      )}
+      {current && <ExerciseChart exerciseId={current.exercise_id} metric={metric} range={range} />}
     </>
   );
 }
@@ -101,9 +95,11 @@ function ExerciseChart({
 }) {
   const today = useAppStore((s) => s.today);
   const stats = useExerciseStats(exerciseId, since(today), today);
+  // Рекордная тренировка: на графике над её точкой кубок
+  const recordDate = useExerciseRecord(exerciseId).data?.date ?? null;
   if (!stats.data) return <div className="h-56" />;
 
-  const series = buildSeries(stats.data, metric, range, today);
+  const series = buildSeries(stats.data, metric, range, today, recordDate);
   const first = series.points[0];
   const last = series.points.at(-1);
   const delta = first && last ? last.value - first.value : 0;
@@ -132,39 +128,6 @@ function ExerciseChart({
         {range === "year" && ", лучшая тренировка месяца"}
       </p>
     </>
-  );
-}
-
-// "2026-10-12" → "12.10.26"
-function shortDate(date: string): string {
-  return `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(2, 4)}`;
-}
-
-// Рекордная тренировка: лучший подход за всё время. Он же отмечен кубком в истории.
-function RecordLine({ exerciseId }: { exerciseId: string }) {
-  const record = useExerciseRecord(exerciseId).data;
-  if (!record) return null;
-
-  return (
-    <div className="mt-4 flex items-center gap-2 border-t border-border pt-3 text-sm">
-      <Icon name="trophy" className="size-5 shrink-0 text-accent" />
-      <span className="flex-1">
-        Рекордная тренировка
-        <span className="block text-xs text-text-faint">{shortDate(record.date)}</span>
-      </span>
-      <span className="text-right">
-        <span className="text-accent">
-          {record.weight > 0
-            ? `${formatValue(record.weight)} кг × ${record.reps}`
-            : `${record.reps} повт.`}
-        </span>
-        {record.weight > 0 && (
-          <span className="block text-xs text-text-faint">
-            сила ≈ {formatValue(record.strength)} кг
-          </span>
-        )}
-      </span>
-    </div>
   );
 }
 
