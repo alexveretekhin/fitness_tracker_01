@@ -8,12 +8,16 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { queryClient } from "./api";
+import { enableDragScroll } from "./lib/dragScroll";
 import { router } from "./router";
 
 // Точка входа: React рисует приложение внутрь <div id="root"> из index.html.
 // QueryClientProvider даёт всем экранам доступ к кэшу запросов к API.
 const root = document.getElementById("root");
 if (!root) throw new Error("Нет элемента #root в index.html");
+
+// Списки можно тянуть мышью вверх и вниз, как пальцем на телефоне
+enableDragScroll();
 
 createRoot(root).render(
   <StrictMode>
