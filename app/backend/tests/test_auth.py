@@ -132,3 +132,53 @@ def test_google_bad_or_unverified(anon, monkeypatch):
     assert anon.post("/api/auth/google", json={"credential": "x"}).status_code == 401
     _fake_google(monkeypatch, {"email": "a@gmail.com", "email_verified": False})
     assert anon.post("/api/auth/google", json={"credential": "x"}).status_code == 401
+
+
+# ---------- Гость (вход без регистрации) ----------
+
+
+def _guest(client):
+    r = client.post("/api/auth/guest")
+    assert r.status_code == 201
+    client.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
+    return client
+
+
+def test_guest_can_train(anon):
+    _guest(anon)
+    me = anon.get("/api/me").json()
+    assert me["is_guest"] is True and me["email"] is None
+    anon.post(f"/api/days/{DAY}/exercises", json={"exercise_id": "push-ups"})
+    assert len(anon.get(f"/api/days/{DAY}").json()["exercises"]) == 1
+
+
+def test_guest_register_keeps_workouts(anon):
+    _guest(anon)
+    anon.put("/api/me", json={"avatar": "male"})
+    anon.post(f"/api/days/{DAY}/exercises", json={"exercise_id": "push-ups"})
+    r = anon.post("/api/auth/register", json={"email": "g@example.com", "password": "secret123"})
+    assert r.status_code == 201
+    anon.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
+    me = anon.get("/api/me").json()
+    assert me["is_guest"] is False and me["email"] == "g@example.com" and me["avatar"] == "male"
+    assert len(anon.get(f"/api/days/{DAY}").json()["exercises"]) == 1
+    # Теперь можно войти паролем
+    ok = anon.post("/api/auth/login", data={"username": "g@example.com", "password": "secret123"})
+    assert ok.status_code == 200
+
+
+def test_guest_google_keeps_workouts(anon, monkeypatch):
+    _guest(anon)
+    anon.post(f"/api/days/{DAY}/exercises", json={"exercise_id": "push-ups"})
+    _fake_google(monkeypatch, {"email": "g@gmail.com", "email_verified": True})
+    token = anon.post("/api/auth/google", json={"credential": "x"}).json()["access_token"]
+    anon.headers["Authorization"] = f"Bearer {token}"
+    assert anon.get("/api/me").json()["email"] == "g@gmail.com"
+    assert len(anon.get(f"/api/days/{DAY}").json()["exercises"]) == 1
+
+
+def test_registered_user_register_creates_new_account(client):
+    """Обычный аккаунт при регистрации новой почты не превращается в неё: создаётся новый."""
+    r = client.post("/api/auth/register", json={"email": "b@example.com", "password": "secret123"})
+    assert r.status_code == 201
+    assert client.get("/api/me").json()["email"] == "athlete@example.com"

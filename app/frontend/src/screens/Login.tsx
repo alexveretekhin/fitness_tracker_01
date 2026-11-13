@@ -1,38 +1,53 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { type FormEvent, useState } from "react";
-import { errorText, useAuthConfig, useLogin, useLoginGoogle, useRegister } from "../api";
+import {
+  errorText,
+  isSignedIn,
+  useAuthConfig,
+  useLogin,
+  useLoginGoogle,
+  useLoginGuest,
+  useMe,
+  useRegister,
+} from "../api";
 import { GoogleButton } from "../components/GoogleButton";
 
 type Mode = "login" | "register";
 
 // Вход и регистрация на одном экране, переключатель сверху.
-// После регистрации сразу выбор аватара, после входа главная.
+// Внизу «Без регистрации»: гостевой аккаунт в один тап.
+// Гость тоже попадает сюда, чтобы создать аккаунт: тогда сразу открыта
+// регистрация, а его тренировки перейдут в новый аккаунт.
 export function Login() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("login");
+  const isGuest = useMe(isSignedIn()).data?.is_guest === true;
+  const [mode, setMode] = useState<Mode>(isGuest ? "register" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
   const register = useRegister();
   const google = useLoginGoogle();
+  const guest = useLoginGuest();
   const googleId = useAuthConfig().data?.google_client_id;
   const active = mode === "login" ? login : register;
-  const error = google.isError ? google.error : active.isError ? active.error : null;
+  const error = google.isError
+    ? google.error
+    : guest.isError
+      ? guest.error
+      : active.isError
+        ? active.error
+        : null;
+  // Главная сама отправит выбрать аватар, если его ещё нет
+  const home = () => navigate({ to: "/home", replace: true });
 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (mode === "login") {
       // Стандарт OAuth2: почта едет в поле username
-      login.mutate(
-        { body: { username: email, password } },
-        { onSuccess: () => navigate({ to: "/home", replace: true }) },
-      );
+      login.mutate({ body: { username: email, password } }, { onSuccess: home });
     } else {
-      register.mutate(
-        { body: { email, password } },
-        { onSuccess: () => navigate({ to: "/avatar", replace: true }) },
-      );
+      register.mutate({ body: { email, password } }, { onSuccess: home });
     }
   }
 
@@ -51,6 +66,11 @@ export function Login() {
         className="size-32 rounded-full object-cover"
       />
       <h1 className="mt-4 text-2xl text-accent-soft">Fitness Tracker</h1>
+      {isGuest && (
+        <p className="mt-2 px-4 text-center text-sm text-text-muted">
+          Создай аккаунт, и твои тренировки сохранятся в нём
+        </p>
+      )}
 
       <div className="mt-8 flex w-full max-w-xs rounded-row border border-border bg-surface p-1">
         {(["login", "register"] as const).map((m) => (
@@ -111,14 +131,25 @@ export function Login() {
           <GoogleButton
             clientId={googleId}
             onCredential={(credential) =>
-              // Новый аккаунт без аватара главная сама отправит выбирать его
-              google.mutate(
-                { body: { credential } },
-                { onSuccess: () => navigate({ to: "/home", replace: true }) },
-              )
+              google.mutate({ body: { credential } }, { onSuccess: home })
             }
           />
         </div>
+      )}
+
+      {isGuest ? (
+        <button type="button" onClick={home} className="mt-auto mb-6 h-10 text-sm text-text-muted">
+          Назад
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={guest.isPending}
+          onClick={() => guest.mutate({}, { onSuccess: home })}
+          className="mt-auto mb-6 h-10 text-sm text-text-muted underline-offset-4 hover:underline"
+        >
+          Без регистрации
+        </button>
       )}
     </div>
   );

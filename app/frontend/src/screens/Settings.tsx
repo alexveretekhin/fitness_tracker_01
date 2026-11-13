@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { logout, useClearDays, useMe, useProgress } from "../api";
+import { logoutWithConfirm, useClearDays, useMe, useProgress } from "../api";
 import { AvatarRing } from "../components/AvatarRing";
 import { ListRow, Panel } from "../components/ui";
 
@@ -27,10 +27,17 @@ export function Settings() {
           <AvatarRing avatar={avatar} size={36} share={share} />
           <span className="min-w-0">
             <span className="block truncate">{me?.name ?? "Avatar"}</span>
-            <span className="block truncate text-[11px] text-text-faint">{me?.email}</span>
+            <span className="block truncate text-[11px] text-text-faint">
+              {me?.is_guest ? "гость: тренировки только здесь" : me?.email}
+            </span>
           </span>
         </span>
       </ListRow>
+      {me?.is_guest && (
+        <ListRow onClick={() => navigate({ to: "/login" })}>
+          <span className="text-accent">Создать аккаунт</span>
+        </ListRow>
+      )}
       <ListRow muted>3D (скоро)</ListRow>
       <ListRow onClick={() => navigate({ to: "/history" })}>History</ListRow>
 
@@ -46,8 +53,7 @@ export function Settings() {
 
       <ListRow
         onClick={() => {
-          logout();
-          navigate({ to: "/login", replace: true });
+          if (logoutWithConfirm(me?.is_guest === true)) navigate({ to: "/login", replace: true });
         }}
       >
         <span className="text-text-muted">Выйти</span>

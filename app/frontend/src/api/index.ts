@@ -15,6 +15,7 @@ import {
   listDaysOptions,
   listMuscleGroupsOptions,
   loginGoogleMutation,
+  loginGuestMutation,
   loginMutation,
   registerMutation,
   removeExerciseMutation,
@@ -97,6 +98,11 @@ export function useRegister() {
   return useMutation({ ...registerMutation(), onSuccess: onSignedIn });
 }
 
+// Вход без регистрации: сервер создаёт гостевой аккаунт
+export function useLoginGuest() {
+  return useMutation({ ...loginGuestMutation(), onSuccess: onSignedIn });
+}
+
 // Вход через Google: отдаём серверу токен, который вернула кнопка Google
 export function useLoginGoogle() {
   return useMutation({ ...loginGoogleMutation(), onSuccess: onSignedIn });
@@ -110,6 +116,14 @@ export function useAuthConfig() {
 export function logout() {
   clearToken();
   queryClient.clear();
+}
+
+// Выход с вопросом. Гостя предупреждаем: войти обратно в гостевой аккаунт
+// нельзя, его тренировки пропадут. Возвращает true, если вышли.
+export function logoutWithConfirm(isGuest: boolean): boolean {
+  if (isGuest && !confirm("Ты гость: после выхода тренировки пропадут. Выйти?")) return false;
+  logout();
+  return true;
 }
 
 export function isSignedIn() {
@@ -148,8 +162,9 @@ export function useExerciseCatalog() {
 
 // ---------- Профиль ----------
 
-export function useMe() {
-  return useQuery(getMeOptions());
+// enabled = false: не спрашивать сервер (например, на экране входа, пока не вошли)
+export function useMe(enabled = true) {
+  return useQuery({ ...getMeOptions(), enabled });
 }
 
 export function useSetAvatar() {

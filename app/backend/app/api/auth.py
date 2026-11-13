@@ -1,4 +1,4 @@
-"""Регистрация и вход: по почте и паролю (ADR 0014) и через Google (ADR 0015).
+"""Регистрация и вход: по почте и паролю (ADR 0014), через Google (ADR 0015), гостем (ADR 0016).
 
 Оба адреса отвечают токеном. Фронтенд хранит его и прикладывает к запросам.
 """
@@ -11,7 +11,7 @@ from sqlmodel import select
 
 from app import security
 from app.config import settings
-from app.deps import SessionDep
+from app.deps import CurrentGuest, SessionDep
 from app.models import User
 from app.schemas import AuthConfig, GoogleIn, RegisterIn, TokenOut
 from app.security import create_token, hash_password, verify_password
@@ -23,13 +23,36 @@ def _find(session: SessionDep, email: str) -> User | None:
     return session.exec(select(User).where(User.email == email.strip().lower())).first()
 
 
+def _save(session: SessionDep, user: User) -> TokenOut:
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return TokenOut(access_token=create_token(user.id))
+
+
+def _claim_guest(guest: User, email: str, name: str) -> User:
+    """Гость указал почту: это теперь обычный аккаунт, его тренировки и аватар остаются."""
+    guest.email, guest.name, guest.is_guest = email, name, False
+    return guest
+
+
+@router.post("/guest", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+def login_guest(session: SessionDep):
+    """Вход без регистрации: создаём пустой гостевой аккаунт и сразу выдаём токен."""
+    return _save(session, User(name="гость", is_guest=True))
+
+
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterIn, session: SessionDep):
-    """Новый аккаунт. Начинается с нуля: без тренировок и без аватара."""
+def register(body: RegisterIn, session: SessionDep, guest: CurrentGuest):
+    """Новый аккаунт. Если регистрируется гость, его тренировки переходят в аккаунт."""
     email = body.email.strip().lower()
     if _find(session, email) is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Эта почта уже зарегистрирована")
     name = (body.name or "").strip() or email.split("@")[0]
+    if guest is not None:
+        user = _claim_guest(guest, email, name)
+        user.password_hash = hash_password(body.password)
+        return _save(session, user)
     user = User(email=email, password_hash=hash_password(body.password), name=name)
     session.add(user)
     session.commit()
@@ -59,11 +82,12 @@ def auth_config():
 
 
 @router.post("/google", response_model=TokenOut)
-def login_google(body: GoogleIn, session: SessionDep):
+def login_google(body: GoogleIn, session: SessionDep, guest: CurrentGuest):
     """Вход через Google. Нет аккаунта с этой почтой — создаём (без пароля).
 
     Если аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:
     Google подтвердил, что почта принадлежит этому человеку.
+    Если нажал гость, а почта новая, гость становится этим аккаунтом с тренировками.
     """
     if not settings.google_client_id:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Вход через Google не настроен")
@@ -74,6 +98,8 @@ def login_google(body: GoogleIn, session: SessionDep):
     user = _find(session, email)
     if user is None:
         name = (info.get("given_name") or info.get("name") or email.split("@")[0])[:40]
+        if guest is not None:
+            return _save(session, _claim_guest(guest, email, name))
         user = User(email=email, name=name)
         session.add(user)
         session.commit()

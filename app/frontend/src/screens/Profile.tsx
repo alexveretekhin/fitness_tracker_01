@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { logout, useMe, useProgress } from "../api";
+import { logoutWithConfirm, useMe, useProgress } from "../api";
 import { AvatarRing } from "../components/AvatarRing";
 import { Panel, QueryState } from "../components/ui";
 
@@ -39,7 +39,17 @@ export function Profile() {
             {me && (
               <>
                 <p className="mt-4 text-lg">{me.name}</p>
-                <p className="text-xs text-text-faint">{me.email}</p>
+                {me.is_guest ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/login" })}
+                    className="mt-2 h-9 rounded-row bg-accent px-4 text-sm font-bold text-bg"
+                  >
+                    Создать аккаунт
+                  </button>
+                ) : (
+                  <p className="text-xs text-text-faint">{me.email}</p>
+                )}
               </>
             )}
             <p className="mt-4 text-xl">Уровень {p.level}</p>
@@ -62,8 +72,9 @@ export function Profile() {
             <button
               type="button"
               onClick={() => {
-                logout();
-                navigate({ to: "/login", replace: true });
+                if (logoutWithConfirm(me?.is_guest === true)) {
+                  navigate({ to: "/login", replace: true });
+                }
               }}
               className="mb-3 h-9 text-sm text-weekend"
             >

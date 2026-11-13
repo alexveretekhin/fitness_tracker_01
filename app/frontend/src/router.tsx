@@ -83,9 +83,11 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
   component: Login,
-  // Уже вошёл: экран входа не нужен
-  beforeLoad: () => {
-    if (isSignedIn()) throw redirect({ to: "/home" });
+  // Уже вошёл: экран входа не нужен. Кроме гостя: он приходит сюда создать аккаунт
+  beforeLoad: async () => {
+    if (!isSignedIn()) return;
+    const me = await queryClient.ensureQueryData(getMeOptions()).catch(() => null);
+    if (me && !me.is_guest) throw redirect({ to: "/home" });
   },
 });
 

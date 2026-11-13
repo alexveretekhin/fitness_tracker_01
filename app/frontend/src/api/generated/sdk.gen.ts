@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, type Options as Options2, type RequestResult, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, AuthConfigData, AuthConfigResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordData, GetExerciseRecordErrors, GetExerciseRecordResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, LoginData, LoginErrors, LoginGoogleData, LoginGoogleErrors, LoginGoogleResponses, LoginResponses, RegisterData, RegisterErrors, RegisterResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, AuthConfigData, AuthConfigResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordData, GetExerciseRecordErrors, GetExerciseRecordResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, LoginData, LoginErrors, LoginGoogleData, LoginGoogleErrors, LoginGoogleResponses, LoginGuestData, LoginGuestResponses, LoginResponses, RegisterData, RegisterErrors, RegisterResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -26,11 +26,19 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({ url: '/health', ...options });
 
 /**
+ * Login Guest
+ *
+ * Вход без регистрации: создаём пустой гостевой аккаунт и сразу выдаём токен.
+ */
+export const loginGuest = <ThrowOnError extends boolean = false>(options?: Options<LoginGuestData, ThrowOnError>): RequestResult<LoginGuestResponses, unknown, ThrowOnError> => (options?.client ?? client).post<LoginGuestResponses, unknown, ThrowOnError>({ url: '/api/auth/guest', ...options });
+
+/**
  * Register
  *
- * Новый аккаунт. Начинается с нуля: без тренировок и без аватара.
+ * Новый аккаунт. Если регистрируется гость, его тренировки переходят в аккаунт.
  */
 export const register = <ThrowOnError extends boolean = false>(options: Options<RegisterData, ThrowOnError>): RequestResult<RegisterResponses, RegisterErrors, ThrowOnError> => (options.client ?? client).post<RegisterResponses, RegisterErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/auth/register',
     ...options,
     headers: {
@@ -68,8 +76,10 @@ export const authConfig = <ThrowOnError extends boolean = false>(options?: Optio
  *
  * Если аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:
  * Google подтвердил, что почта принадлежит этому человеку.
+ * Если нажал гость, а почта новая, гость становится этим аккаунтом с тренировками.
  */
 export const loginGoogle = <ThrowOnError extends boolean = false>(options: Options<LoginGoogleData, ThrowOnError>): RequestResult<LoginGoogleResponses, LoginGoogleErrors, ThrowOnError> => (options.client ?? client).post<LoginGoogleResponses, LoginGoogleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/auth/google',
     ...options,
     headers: {
