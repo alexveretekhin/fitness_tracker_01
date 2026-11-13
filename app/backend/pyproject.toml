@@ -6,9 +6,11 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.1",
     "fastapi[standard]>=0.162.0",
+    "google-auth>=2.62.2",
     "pwdlib[argon2]>=0.3.1",
     "pydantic-settings>=2.16.1",
     "pyjwt>=2.15.1",
+    "requests>=2.34.2",
     "sqlmodel>=0.0.48",
 ]
 

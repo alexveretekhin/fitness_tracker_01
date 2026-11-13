@@ -1,7 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { type FormEvent, useState } from "react";
-import { errorText, useLogin, useRegister } from "../api";
+import { errorText, useAuthConfig, useLogin, useLoginGoogle, useRegister } from "../api";
+import { GoogleButton } from "../components/GoogleButton";
 
 type Mode = "login" | "register";
 
@@ -14,7 +15,10 @@ export function Login() {
   const [password, setPassword] = useState("");
   const login = useLogin();
   const register = useRegister();
+  const google = useLoginGoogle();
+  const googleId = useAuthConfig().data?.google_client_id;
   const active = mode === "login" ? login : register;
+  const error = google.isError ? google.error : active.isError ? active.error : null;
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -36,6 +40,7 @@ export function Login() {
     setMode(next);
     login.reset();
     register.reset();
+    google.reset();
   }
 
   return (
@@ -83,7 +88,7 @@ export function Login() {
         )}
 
         <p className="min-h-5 px-1 text-sm text-weekend" role="alert">
-          {active.isError ? errorText(active.error) : ""}
+          {error ? errorText(error) : ""}
         </p>
 
         <motion.button
@@ -95,6 +100,26 @@ export function Login() {
           {active.isPending ? "..." : mode === "login" ? "Войти" : "Создать аккаунт"}
         </motion.button>
       </form>
+
+      {googleId && (
+        <div className="mt-6 flex w-full max-w-xs flex-col items-center gap-4">
+          <div className="flex w-full items-center gap-3 text-xs text-text-faint">
+            <span className="h-px flex-1 bg-border" />
+            или
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <GoogleButton
+            clientId={googleId}
+            onCredential={(credential) =>
+              // Новый аккаунт без аватара главная сама отправит выбирать его
+              google.mutate(
+                { body: { credential } },
+                { onSuccess: () => navigate({ to: "/home", replace: true }) },
+              )
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,8 @@
 import datetime as dt
 
 import jwt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 from pwdlib import PasswordHash
 
 from app.config import settings
@@ -40,4 +42,18 @@ def read_token(token: str) -> int | None:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[ALGORITHM])
         return int(payload["sub"])
     except (jwt.PyJWTError, KeyError, ValueError):
+        return None
+
+
+def read_google_token(credential: str) -> dict | None:
+    """Проверяет токен от кнопки Google: подпись Google, срок и что он выдан нашему приложению.
+
+    Возвращает данные пользователя (email, name, email_verified) или None, если токен плохой.
+    Ключи Google для проверки подписи библиотека скачивает сама и кэширует.
+    """
+    try:
+        return id_token.verify_oauth2_token(
+            credential, google_requests.Request(), settings.google_client_id
+        )
+    except ValueError:
         return None

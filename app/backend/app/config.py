@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-secret-change-me-in-env-file-please"
     # Сколько дней токен действует, потом придётся войти заново
     token_days: int = 30
+    # Вход через Google: Client ID из Google Cloud Console (docs/stages/06-1-google-login.md).
+    # Пусто — кнопки Google на экране входа нет. Это не секрет, он виден в браузере.
+    google_client_id: str = ""
 
 
 settings = Settings()

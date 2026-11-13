@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, addSet, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, login, type Options, register, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, LoginData, LoginError, LoginResponse, RegisterData, RegisterError, RegisterResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
+import { addExercise, addSet, authConfig, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, login, loginGoogle, type Options, register, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, AuthConfigData, AuthConfigResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, LoginData, LoginError, LoginGoogleData, LoginGoogleError, LoginGoogleResponse, LoginResponse, RegisterData, RegisterError, RegisterResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -87,6 +87,48 @@ export const loginMutation = (options?: Partial<Options<LoginData>>): UseMutatio
     const mutationOptions: UseMutationOptions<LoginResponse, LoginError, Options<LoginData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await login({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const authConfigQueryKey = (options?: Options<AuthConfigData>) => createQueryKey('authConfig', options);
+
+/**
+ * Auth Config
+ *
+ * Включён ли вход через Google (и с каким Client ID рисовать кнопку).
+ */
+export const authConfigOptions = (options?: Options<AuthConfigData>) => queryOptions<AuthConfigResponse, DefaultError, AuthConfigResponse, ReturnType<typeof authConfigQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await authConfig({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: authConfigQueryKey(options)
+});
+
+/**
+ * Login Google
+ *
+ * Вход через Google. Нет аккаунта с этой почтой — создаём (без пароля).
+ *
+ * Если аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:
+ * Google подтвердил, что почта принадлежит этому человеку.
+ */
+export const loginGoogleMutation = (options?: Partial<Options<LoginGoogleData>>): UseMutationOptions<LoginGoogleResponse, LoginGoogleError, Options<LoginGoogleData>> => {
+    const mutationOptions: UseMutationOptions<LoginGoogleResponse, LoginGoogleError, Options<LoginGoogleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await loginGoogle({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

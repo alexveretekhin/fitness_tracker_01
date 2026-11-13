@@ -88,3 +88,47 @@ def test_old_default_user_is_not_reachable(anon, session: Session):
     session.commit()
     login(anon, "fresh@example.com")
     assert anon.get(f"/api/days/{DAY}").json()["exercises"] == []
+
+
+# ---------- Вход через Google ----------
+# Настоящий Google в тестах не зовём: подменяем проверку токена.
+
+
+def _fake_google(monkeypatch, info):
+    monkeypatch.setattr("app.config.settings.google_client_id", "test-client-id")
+    monkeypatch.setattr("app.security.read_google_token", lambda credential: info)
+
+
+def test_google_off_by_default(anon):
+    assert anon.get("/api/auth/config").json() == {"google_client_id": None}
+    assert anon.post("/api/auth/google", json={"credential": "x"}).status_code == 503
+
+
+def test_google_creates_account(anon, monkeypatch):
+    _fake_google(
+        monkeypatch, {"email": "Gym@Gmail.com", "email_verified": True, "given_name": "Alex"}
+    )
+    assert anon.get("/api/auth/config").json() == {"google_client_id": "test-client-id"}
+    r = anon.post("/api/auth/google", json={"credential": "x"})
+    assert r.status_code == 200
+    anon.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
+    me = anon.get("/api/me").json()
+    assert me["email"] == "gym@gmail.com" and me["name"] == "Alex"
+    # Пароля у такого аккаунта нет: войти паролем нельзя
+    bad = anon.post("/api/auth/login", data={"username": "gym@gmail.com", "password": ""})
+    assert bad.status_code in (401, 422)
+
+
+def test_google_joins_existing_account(client, monkeypatch):
+    client.post(f"/api/days/{DAY}/exercises", json={"exercise_id": "push-ups"})
+    _fake_google(monkeypatch, {"email": "athlete@example.com", "email_verified": True})
+    token = client.post("/api/auth/google", json={"credential": "x"}).json()["access_token"]
+    day = client.get(f"/api/days/{DAY}", headers={"Authorization": f"Bearer {token}"}).json()
+    assert len(day["exercises"]) == 1  # тот же аккаунт, тренировки на месте
+
+
+def test_google_bad_or_unverified(anon, monkeypatch):
+    _fake_google(monkeypatch, None)
+    assert anon.post("/api/auth/google", json={"credential": "x"}).status_code == 401
+    _fake_google(monkeypatch, {"email": "a@gmail.com", "email_verified": False})
+    assert anon.post("/api/auth/google", json={"credential": "x"}).status_code == 401

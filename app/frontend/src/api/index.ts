@@ -3,6 +3,7 @@ import { clearToken, currentToken, setToken } from "../lib/auth";
 import {
   addExerciseMutation,
   addSetMutation,
+  authConfigOptions,
   clearDaysMutation,
   getDayOptions,
   getDayQueryKey,
@@ -13,6 +14,7 @@ import {
   getProgressOptions,
   listDaysOptions,
   listMuscleGroupsOptions,
+  loginGoogleMutation,
   loginMutation,
   registerMutation,
   removeExerciseMutation,
@@ -93,6 +95,16 @@ export function useLogin() {
 
 export function useRegister() {
   return useMutation({ ...registerMutation(), onSuccess: onSignedIn });
+}
+
+// Вход через Google: отдаём серверу токен, который вернула кнопка Google
+export function useLoginGoogle() {
+  return useMutation({ ...loginGoogleMutation(), onSuccess: onSignedIn });
+}
+
+// Включён ли вход через Google на сервере (есть ли GOOGLE_CLIENT_ID в .env)
+export function useAuthConfig() {
+  return useQuery({ ...authConfigOptions(), staleTime: Number.POSITIVE_INFINITY });
 }
 
 export function logout() {
