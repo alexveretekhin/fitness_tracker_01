@@ -93,6 +93,7 @@ class MeOut(BaseModel):
     name: str
     email: str | None
     avatar: Avatar | None
+    is_guest: bool = False  # вошёл без регистрации: тренировки только на этом устройстве
 
 
 class MeUpdate(BaseModel):

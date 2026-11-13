@@ -220,6 +220,10 @@ export type MeOut = {
      */
     email: string | null;
     avatar: Avatar | null;
+    /**
+     * Is Guest
+     */
+    is_guest?: boolean;
 };
 
 /**
@@ -414,6 +418,22 @@ export type HealthResponses = {
 };
 
 export type HealthResponse = HealthResponses[keyof HealthResponses];
+
+export type LoginGuestData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/guest';
+};
+
+export type LoginGuestResponses = {
+    /**
+     * Successful Response
+     */
+    201: TokenOut;
+};
+
+export type LoginGuestResponse = LoginGuestResponses[keyof LoginGuestResponses];
 
 export type RegisterData = {
     body: RegisterIn;

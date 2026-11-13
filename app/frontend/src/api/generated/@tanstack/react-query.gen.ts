@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, addSet, authConfig, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, login, loginGoogle, type Options, register, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, AuthConfigData, AuthConfigResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, LoginData, LoginError, LoginGoogleData, LoginGoogleError, LoginGoogleResponse, LoginResponse, RegisterData, RegisterError, RegisterResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
+import { addExercise, addSet, authConfig, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, login, loginGoogle, loginGuest, type Options, register, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, AuthConfigData, AuthConfigResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, LoginData, LoginError, LoginGoogleData, LoginGoogleError, LoginGoogleResponse, LoginGuestData, LoginGuestResponse, LoginResponse, RegisterData, RegisterError, RegisterResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -60,9 +60,28 @@ export const healthOptions = (options?: Options<HealthData>) => queryOptions<Hea
 });
 
 /**
+ * Login Guest
+ *
+ * Вход без регистрации: создаём пустой гостевой аккаунт и сразу выдаём токен.
+ */
+export const loginGuestMutation = (options?: Partial<Options<LoginGuestData>>): UseMutationOptions<LoginGuestResponse, DefaultError, Options<LoginGuestData>> => {
+    const mutationOptions: UseMutationOptions<LoginGuestResponse, DefaultError, Options<LoginGuestData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await loginGuest({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
  * Register
  *
- * Новый аккаунт. Начинается с нуля: без тренировок и без аватара.
+ * Новый аккаунт. Если регистрируется гость, его тренировки переходят в аккаунт.
  */
 export const registerMutation = (options?: Partial<Options<RegisterData>>): UseMutationOptions<RegisterResponse, RegisterError, Options<RegisterData>> => {
     const mutationOptions: UseMutationOptions<RegisterResponse, RegisterError, Options<RegisterData>> = {
@@ -124,6 +143,7 @@ export const authConfigOptions = (options?: Options<AuthConfigData>) => queryOpt
  *
  * Если аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:
  * Google подтвердил, что почта принадлежит этому человеку.
+ * Если нажал гость, а почта новая, гость становится этим аккаунтом с тренировками.
  */
 export const loginGoogleMutation = (options?: Partial<Options<LoginGoogleData>>): UseMutationOptions<LoginGoogleResponse, LoginGoogleError, Options<LoginGoogleData>> => {
     const mutationOptions: UseMutationOptions<LoginGoogleResponse, LoginGoogleError, Options<LoginGoogleData>> = {

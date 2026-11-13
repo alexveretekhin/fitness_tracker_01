@@ -34,6 +34,8 @@ class User(SQLModel, table=True):
     """Аккаунт. Пароль хранится только в виде хеша (необратимого «отпечатка»).
 
     У старого пользователя по умолчанию (до этапа 6) почты нет: войти в него нельзя.
+    Гость (is_guest) тоже без почты: вошёл без регистрации, позже может сохранить
+    аккаунт, указав почту, и тренировки останутся с ним.
     """
 
     id: int | None = Field(default=None, primary_key=True)
@@ -41,6 +43,7 @@ class User(SQLModel, table=True):
     avatar: Avatar | None = None
     email: str | None = Field(default=None, unique=True, index=True)
     password_hash: str | None = None
+    is_guest: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
     created_at: dt.datetime | None = Field(default_factory=_now)
 
 
