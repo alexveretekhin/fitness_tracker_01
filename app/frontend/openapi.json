@@ -115,6 +115,70 @@
         }
       }
     },
+    "/api/auth/config": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth Config",
+        "description": "Включён ли вход через Google (и с каким Client ID рисовать кнопку).",
+        "operationId": "auth_config",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login Google",
+        "description": "Вход через Google. Нет аккаунта с этой почтой — создаём (без пароля).\n\nЕсли аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:\nGoogle подтвердил, что почта принадлежит этому человеку.",
+        "operationId": "login_google",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/muscle-groups": {
       "get": {
         "tags": [
@@ -930,6 +994,27 @@
         ],
         "title": "AddExerciseIn"
       },
+      "AuthConfig": {
+        "properties": {
+          "google_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Client Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "google_client_id"
+        ],
+        "title": "AuthConfig",
+        "description": "Какие способы входа включены. Фронтенд по нему решает, показывать ли кнопку Google."
+      },
       "Avatar": {
         "type": "string",
         "enum": [
@@ -1169,6 +1254,20 @@
         ],
         "title": "ExerciseStat",
         "description": "Итог одного упражнения за один день, точка на графике в истории."
+      },
+      "GoogleIn": {
+        "properties": {
+          "credential": {
+            "type": "string",
+            "title": "Credential"
+          }
+        },
+        "type": "object",
+        "required": [
+          "credential"
+        ],
+        "title": "GoogleIn",
+        "description": "Ответ кнопки Google: подписанный Google токен с почтой и именем (ID token)."
       },
       "HTTPValidationError": {
         "properties": {

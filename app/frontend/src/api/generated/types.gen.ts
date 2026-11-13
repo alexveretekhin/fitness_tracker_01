@@ -15,6 +15,18 @@ export type AddExerciseIn = {
 };
 
 /**
+ * AuthConfig
+ *
+ * Какие способы входа включены. Фронтенд по нему решает, показывать ли кнопку Google.
+ */
+export type AuthConfig = {
+    /**
+     * Google Client Id
+     */
+    google_client_id: string | null;
+};
+
+/**
  * Avatar
  */
 export type Avatar = 'male' | 'female';
@@ -167,6 +179,18 @@ export type ExerciseStat = {
      * Sets
      */
     sets: number;
+};
+
+/**
+ * GoogleIn
+ *
+ * Ответ кнопки Google: подписанный Google токен с почтой и именем (ID token).
+ */
+export type GoogleIn = {
+    /**
+     * Credential
+     */
+    credential: string;
 };
 
 /**
@@ -440,6 +464,47 @@ export type LoginResponses = {
 };
 
 export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type AuthConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/config';
+};
+
+export type AuthConfigResponses = {
+    /**
+     * Successful Response
+     */
+    200: AuthConfig;
+};
+
+export type AuthConfigResponse = AuthConfigResponses[keyof AuthConfigResponses];
+
+export type LoginGoogleData = {
+    body: GoogleIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/google';
+};
+
+export type LoginGoogleErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LoginGoogleError = LoginGoogleErrors[keyof LoginGoogleErrors];
+
+export type LoginGoogleResponses = {
+    /**
+     * Successful Response
+     */
+    200: TokenOut;
+};
+
+export type LoginGoogleResponse = LoginGoogleResponses[keyof LoginGoogleResponses];
 
 export type ListMuscleGroupsData = {
     body?: never;

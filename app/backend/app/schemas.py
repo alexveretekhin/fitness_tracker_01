@@ -69,6 +69,18 @@ class RegisterIn(BaseModel):
     name: str | None = Field(default=None, max_length=40)
 
 
+class GoogleIn(BaseModel):
+    """Ответ кнопки Google: подписанный Google токен с почтой и именем (ID token)."""
+
+    credential: str
+
+
+class AuthConfig(BaseModel):
+    """Какие способы входа включены. Фронтенд по нему решает, показывать ли кнопку Google."""
+
+    google_client_id: str | None
+
+
 class TokenOut(BaseModel):
     """Ответ на вход и регистрацию. Такой вид требует стандарт OAuth2."""
 

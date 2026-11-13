@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, type Options as Options2, type RequestResult, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordData, GetExerciseRecordErrors, GetExerciseRecordResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, LoginData, LoginErrors, LoginResponses, RegisterData, RegisterErrors, RegisterResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
+import type { AddExerciseData, AddExerciseErrors, AddExerciseResponses, AddSetData, AddSetErrors, AddSetResponses, AuthConfigData, AuthConfigResponses, ClearDaysData, ClearDaysResponses, GetDayData, GetDayErrors, GetDayResponses, GetExerciseRecordData, GetExerciseRecordErrors, GetExerciseRecordResponses, GetExerciseStatsData, GetExerciseStatsErrors, GetExerciseStatsResponses, GetMeData, GetMeResponses, GetProgressData, GetProgressResponses, HealthData, HealthResponses, ListDaysData, ListDaysErrors, ListDaysResponses, ListGroupExercisesData, ListGroupExercisesErrors, ListGroupExercisesResponses, ListMuscleGroupsData, ListMuscleGroupsResponses, LoginData, LoginErrors, LoginGoogleData, LoginGoogleErrors, LoginGoogleResponses, LoginResponses, RegisterData, RegisterErrors, RegisterResponses, RemoveExerciseData, RemoveExerciseErrors, RemoveExerciseResponses, RemoveSetData, RemoveSetErrors, RemoveSetResponses, SearchExercisesData, SearchExercisesErrors, SearchExercisesResponses, UpdateMeData, UpdateMeErrors, UpdateMeResponses, UpdateSetData, UpdateSetErrors, UpdateSetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -50,6 +50,30 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
     ...options,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...options.headers
+    }
+});
+
+/**
+ * Auth Config
+ *
+ * Включён ли вход через Google (и с каким Client ID рисовать кнопку).
+ */
+export const authConfig = <ThrowOnError extends boolean = false>(options?: Options<AuthConfigData, ThrowOnError>): RequestResult<AuthConfigResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AuthConfigResponses, unknown, ThrowOnError>({ url: '/api/auth/config', ...options });
+
+/**
+ * Login Google
+ *
+ * Вход через Google. Нет аккаунта с этой почтой — создаём (без пароля).
+ *
+ * Если аккаунт с той же почтой уже есть (регистрировался паролем), входим в него:
+ * Google подтвердил, что почта принадлежит этому человеку.
+ */
+export const loginGoogle = <ThrowOnError extends boolean = false>(options: Options<LoginGoogleData, ThrowOnError>): RequestResult<LoginGoogleResponses, LoginGoogleErrors, ThrowOnError> => (options.client ?? client).post<LoginGoogleResponses, LoginGoogleErrors, ThrowOnError>({
+    url: '/api/auth/google',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
         ...options.headers
     }
 });
