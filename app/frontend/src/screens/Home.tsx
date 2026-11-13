@@ -69,7 +69,11 @@ export function Home() {
             >
               {e.name}
             </ListRow>
-            <ExerciseDemo open={demoId === e.exercise_id} src={catalog?.[e.exercise_id]?.demo} />
+            <ExerciseDemo
+              open={demoId === e.exercise_id}
+              exerciseId={e.exercise_id}
+              src={catalog?.[e.exercise_id]?.demo}
+            />
           </div>
         ))}
       </Panel>
