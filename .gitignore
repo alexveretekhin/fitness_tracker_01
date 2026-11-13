@@ -50,3 +50,6 @@ art/**/*.obj
 
 # Logs
 *.log
+
+# Пробные рендеры демо (render-demos.ps1 -Preview)
+art/demos-preview/

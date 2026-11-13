@@ -93,7 +93,7 @@ export function Exercises() {
               {e.name}
               {already && <span className="text-accent"> ✓</span>}
             </ListRow>
-            <ExerciseDemo open={demoId === e.id} src={e.demo} />
+            <ExerciseDemo open={demoId === e.id} exerciseId={e.id} src={e.demo} />
           </div>
         );
       })}
