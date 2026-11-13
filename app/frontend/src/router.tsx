@@ -6,7 +6,7 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { queryClient } from "./api";
+import { isSignedIn, queryClient, setOnUnauthorized } from "./api";
 import { getMeOptions } from "./api/generated/@tanstack/react-query.gen";
 import { BottomNav } from "./components/BottomNav";
 import { FlyProvider } from "./components/FlyToHome";
@@ -14,6 +14,7 @@ import { AvatarChoice } from "./screens/AvatarChoice";
 import { Exercises } from "./screens/Exercises";
 import { History } from "./screens/History";
 import { Home } from "./screens/Home";
+import { Login } from "./screens/Login";
 import { MuscleGroups } from "./screens/MuscleGroups";
 import { Profile } from "./screens/Profile";
 import { Settings } from "./screens/Settings";
@@ -22,6 +23,7 @@ import { Splash } from "./screens/Splash";
 // Карта экранов приложения. Каждый route = адрес в браузере + компонент.
 //
 //  /                      заставка
+//  /login                 вход и регистрация
 //  /avatar                выбор аватара
 //  /home                  главная          ┐
 //  /muscles               группы мышц      │ внутри «оболочки» shell:
@@ -72,10 +74,26 @@ const rootRoute = createRootRoute({
 
 const splashRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: Splash });
 
+// Без входа во все экраны, кроме заставки и входа, не пускаем
+function requireSignIn() {
+  if (!isSignedIn()) throw redirect({ to: "/login" });
+}
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: Login,
+  // Уже вошёл: экран входа не нужен
+  beforeLoad: () => {
+    if (isSignedIn()) throw redirect({ to: "/home" });
+  },
+});
+
 const avatarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/avatar",
   component: AvatarChoice,
+  beforeLoad: requireSignIn,
 });
 
 // Оболочка без своего адреса (id вместо path): общий отступ и нижнее меню
@@ -83,10 +101,17 @@ const shellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "shell",
   beforeLoad: async () => {
+    requireSignIn();
     // Без выбранного аватара сначала отправляем выбирать его.
     // ensureQueryData берёт профиль из кэша, а если его нет, спрашивает сервер.
-    const me = await queryClient.ensureQueryData(getMeOptions());
-    if (!me.avatar) throw redirect({ to: "/avatar" });
+    try {
+      const me = await queryClient.ensureQueryData(getMeOptions());
+      if (!me.avatar) throw redirect({ to: "/avatar" });
+    } catch (error) {
+      // Сервер сказал «войдите заново»: токен уже забыт, ведём на вход
+      if (!isSignedIn()) throw redirect({ to: "/login" });
+      throw error;
+    }
   },
   component: () => (
     <FlyProvider>
@@ -128,6 +153,7 @@ const profileRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   splashRoute,
+  loginRoute,
   avatarRoute,
   shellRoute.addChildren([
     homeRoute,
@@ -140,6 +166,9 @@ const routeTree = rootRoute.addChildren([
 ]);
 
 export const router = createRouter({ routeTree });
+
+// Токен истёк посреди работы: открываем экран входа
+setOnUnauthorized(() => router.navigate({ to: "/login", replace: true }));
 
 // Подсказка TypeScript: теперь navigate({ to: "..." }) проверяет адреса
 declare module "@tanstack/react-router" {

@@ -6,7 +6,7 @@
 
 import datetime as dt
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from app.models import Avatar
 
@@ -61,9 +61,25 @@ class AddExerciseIn(BaseModel):
     exercise_id: str
 
 
+class RegisterIn(BaseModel):
+    """Регистрация: почта и пароль. Имя необязательно, по умолчанию часть почты до @."""
+
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    name: str | None = Field(default=None, max_length=40)
+
+
+class TokenOut(BaseModel):
+    """Ответ на вход и регистрацию. Такой вид требует стандарт OAuth2."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
 class MeOut(BaseModel):
     id: int
     name: str
+    email: str | None
     avatar: Avatar | None
 
 

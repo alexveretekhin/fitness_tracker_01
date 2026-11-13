@@ -1,11 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useClearDays, useMe, useProgress } from "../api";
+import { logout, useClearDays, useMe, useProgress } from "../api";
 import { AvatarRing } from "../components/AvatarRing";
 import { ListRow, Panel } from "../components/ui";
 
 export function Settings() {
   const navigate = useNavigate();
-  const avatar = useMe().data?.avatar;
+  const me = useMe().data;
+  const avatar = me?.avatar;
   const p = useProgress().data;
   const clearDays = useClearDays();
 
@@ -24,7 +25,10 @@ export function Settings() {
       >
         <span className="flex items-center gap-3 py-1">
           <AvatarRing avatar={avatar} size={36} share={share} />
-          Avatar
+          <span className="min-w-0">
+            <span className="block truncate">{me?.name ?? "Avatar"}</span>
+            <span className="block truncate text-[11px] text-text-faint">{me?.email}</span>
+          </span>
         </span>
       </ListRow>
       <ListRow muted>3D (скоро)</ListRow>
@@ -38,6 +42,15 @@ export function Settings() {
         }}
       >
         <span className="text-weekend">Reset data</span>
+      </ListRow>
+
+      <ListRow
+        onClick={() => {
+          logout();
+          navigate({ to: "/login", replace: true });
+        }}
+      >
+        <span className="text-text-muted">Выйти</span>
       </ListRow>
     </Panel>
   );

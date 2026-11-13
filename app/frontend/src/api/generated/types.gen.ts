@@ -20,6 +20,36 @@ export type AddExerciseIn = {
 export type Avatar = 'male' | 'female';
 
 /**
+ * Body_login
+ */
+export type BodyLogin = {
+    /**
+     * Grant Type
+     */
+    grant_type?: string | null;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Password
+     */
+    password: string;
+    /**
+     * Scope
+     */
+    scope?: string;
+    /**
+     * Client Id
+     */
+    client_id?: string | null;
+    /**
+     * Client Secret
+     */
+    client_secret?: string | null;
+};
+
+/**
  * DayExerciseOut
  */
 export type DayExerciseOut = {
@@ -161,6 +191,10 @@ export type MeOut = {
      * Name
      */
     name: string;
+    /**
+     * Email
+     */
+    email: string | null;
     avatar: Avatar | null;
 };
 
@@ -236,6 +270,26 @@ export type RecordOut = {
 };
 
 /**
+ * RegisterIn
+ *
+ * Регистрация: почта и пароль. Имя необязательно, по умолчанию часть почты до @.
+ */
+export type RegisterIn = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Password
+     */
+    password: string;
+    /**
+     * Name
+     */
+    name?: string | null;
+};
+
+/**
  * SetIn
  *
  * Один подход из карточки. Вес 0 = упражнение с собственным весом.
@@ -271,6 +325,22 @@ export type SetOut = {
      * Record
      */
     record?: boolean;
+};
+
+/**
+ * TokenOut
+ *
+ * Ответ на вход и регистрацию. Такой вид требует стандарт OAuth2.
+ */
+export type TokenOut = {
+    /**
+     * Access Token
+     */
+    access_token: string;
+    /**
+     * Token Type
+     */
+    token_type?: string;
 };
 
 /**
@@ -320,6 +390,56 @@ export type HealthResponses = {
 };
 
 export type HealthResponse = HealthResponses[keyof HealthResponses];
+
+export type RegisterData = {
+    body: RegisterIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/register';
+};
+
+export type RegisterErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RegisterError = RegisterErrors[keyof RegisterErrors];
+
+export type RegisterResponses = {
+    /**
+     * Successful Response
+     */
+    201: TokenOut;
+};
+
+export type RegisterResponse = RegisterResponses[keyof RegisterResponses];
+
+export type LoginData = {
+    body: BodyLogin;
+    path?: never;
+    query?: never;
+    url: '/api/auth/login';
+};
+
+export type LoginErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LoginError = LoginErrors[keyof LoginErrors];
+
+export type LoginResponses = {
+    /**
+     * Successful Response
+     */
+    200: TokenOut;
+};
+
+export type LoginResponse = LoginResponses[keyof LoginResponses];
 
 export type ListMuscleGroupsData = {
     body?: never;

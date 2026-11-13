@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addExercise, addSet, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, type Options, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
-import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
+import { addExercise, addSet, clearDays, getDay, getExerciseRecord, getExerciseStats, getMe, getProgress, health, listDays, listGroupExercises, listMuscleGroups, login, type Options, register, removeExercise, removeSet, searchExercises, updateMe, updateSet } from '../sdk.gen';
+import type { AddExerciseData, AddExerciseError, AddExerciseResponse, AddSetData, AddSetError, AddSetResponse, ClearDaysData, ClearDaysResponse, GetDayData, GetDayError, GetDayResponse, GetExerciseRecordData, GetExerciseRecordError, GetExerciseRecordResponse, GetExerciseStatsData, GetExerciseStatsError, GetExerciseStatsResponse, GetMeData, GetMeResponse, GetProgressData, GetProgressResponse, HealthData, HealthResponse, ListDaysData, ListDaysError, ListDaysResponse, ListGroupExercisesData, ListGroupExercisesError, ListGroupExercisesResponse, ListMuscleGroupsData, ListMuscleGroupsResponse, LoginData, LoginError, LoginResponse, RegisterData, RegisterError, RegisterResponse, RemoveExerciseData, RemoveExerciseError, RemoveExerciseResponse, RemoveSetData, RemoveSetError, RemoveSetResponse, SearchExercisesData, SearchExercisesError, SearchExercisesResponse, UpdateMeData, UpdateMeError, UpdateMeResponse, UpdateSetData, UpdateSetError, UpdateSetResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -58,6 +58,44 @@ export const healthOptions = (options?: Options<HealthData>) => queryOptions<Hea
     },
     queryKey: healthQueryKey(options)
 });
+
+/**
+ * Register
+ *
+ * Новый аккаунт. Начинается с нуля: без тренировок и без аватара.
+ */
+export const registerMutation = (options?: Partial<Options<RegisterData>>): UseMutationOptions<RegisterResponse, RegisterError, Options<RegisterData>> => {
+    const mutationOptions: UseMutationOptions<RegisterResponse, RegisterError, Options<RegisterData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await register({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Login
+ *
+ * Вход. По стандарту OAuth2 почта приходит в поле username (обычная форма, не JSON).
+ */
+export const loginMutation = (options?: Partial<Options<LoginData>>): UseMutationOptions<LoginResponse, LoginError, Options<LoginData>> => {
+    const mutationOptions: UseMutationOptions<LoginResponse, LoginError, Options<LoginData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await login({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 export const listMuscleGroupsQueryKey = (options?: Options<ListMuscleGroupsData>) => createQueryKey('listMuscleGroups', options);
 

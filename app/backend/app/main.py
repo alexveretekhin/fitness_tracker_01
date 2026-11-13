@@ -8,7 +8,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from app.api import catalog, days, me, progress, stats
+from app.api import auth, catalog, days, me, progress, stats
 from app.config import settings
 
 
@@ -41,6 +41,7 @@ def health() -> dict[str, str]:
 
 # Все адреса данных начинаются с /api, чтобы не путать их со страницами фронтенда
 api = APIRouter(prefix="/api")
+api.include_router(auth.router)
 api.include_router(catalog.router)
 api.include_router(days.router)
 api.include_router(me.router)

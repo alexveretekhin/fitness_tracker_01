@@ -1,15 +1,17 @@
 import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { useMe, useProgress } from "../api";
+import { logout, useMe, useProgress } from "../api";
 import { AvatarRing } from "../components/AvatarRing";
 import { Panel, QueryState } from "../components/ui";
 
-// Страница аватара: аватар в кольце XP, уровень и сколько осталось до следующего.
+// Профиль: аватар в кольце XP, имя и почта, уровень и сколько осталось
+// до следующего, внизу смена аватара и выход.
 // Тап по аватару выдвигает снизу все уровни: открытые и тёмные закрытые.
 export function Profile() {
   const navigate = useNavigate();
-  const avatar = useMe().data?.avatar;
+  const me = useMe().data;
+  const avatar = me?.avatar;
   const query = useProgress();
   const p = query.data;
   const [sheet, setSheet] = useState(false);
@@ -34,6 +36,12 @@ export function Profile() {
                 }
               />
             </button>
+            {me && (
+              <>
+                <p className="mt-4 text-lg">{me.name}</p>
+                <p className="text-xs text-text-faint">{me.email}</p>
+              </>
+            )}
             <p className="mt-4 text-xl">Уровень {p.level}</p>
             <p className="text-sm text-text-muted">{p.xp} XP</p>
             <p className="mt-1 text-xs text-text-muted">
@@ -47,9 +55,19 @@ export function Profile() {
             <button
               type="button"
               onClick={() => navigate({ to: "/avatar" })}
-              className="mt-auto mb-3 h-9 text-sm text-text-muted"
+              className="mt-auto h-9 text-sm text-text-muted"
             >
               Сменить аватар
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                navigate({ to: "/login", replace: true });
+              }}
+              className="mb-3 h-9 text-sm text-weekend"
+            >
+              Выйти
             </button>
           </>
         )}
