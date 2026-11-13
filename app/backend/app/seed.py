@@ -1,15 +1,15 @@
-"""Заполняет базу каталогом и создаёт пользователя по умолчанию.
+"""Заполняет базу каталогом упражнений. Пользователи создаются регистрацией (этап 6).
 
 Можно запускать сколько угодно раз: существующие записи обновятся, дубли не появятся.
 
     uv run python -m app.seed
 """
 
-from sqlmodel import Session, delete, select
+from sqlmodel import Session, delete
 
 from app.catalog import EXERCISES, MUSCLE_GROUPS
 from app.db import engine
-from app.models import Exercise, ExerciseMuscle, MuscleGroup, MuscleRole, User
+from app.models import Exercise, ExerciseMuscle, MuscleGroup, MuscleRole
 
 
 def seed(session: Session) -> None:
@@ -28,10 +28,6 @@ def seed(session: Session) -> None:
                     exercise_id=ex_id, muscle_group_id=group_id, role=MuscleRole.secondary
                 )
             )
-
-    # До этапа 6 (аккаунты) в приложении один пользователь
-    if session.exec(select(User)).first() is None:
-        session.add(User())
 
     session.commit()
 

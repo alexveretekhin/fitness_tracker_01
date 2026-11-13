@@ -1,4 +1,5 @@
 import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { clearToken, currentToken, setToken } from "../lib/auth";
 import {
   addExerciseMutation,
   addSetMutation,
@@ -12,12 +13,15 @@ import {
   getProgressOptions,
   listDaysOptions,
   listMuscleGroupsOptions,
+  loginMutation,
+  registerMutation,
   removeExerciseMutation,
   removeSetMutation,
   searchExercisesOptions,
   updateMeMutation,
   updateSetMutation,
 } from "./generated/@tanstack/react-query.gen";
+import { client } from "./generated/client.gen";
 import type { DayOut, ExerciseOut } from "./generated/types.gen";
 
 // Всё общение с бэкендом идёт через этот модуль.
@@ -53,6 +57,66 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// ---------- Вход ----------
+
+// К каждому запросу, которому нужен вход, клиент сам добавит заголовок
+// Authorization: Bearer <токен>. Каталогу упражнений токен не нужен.
+client.setConfig({ auth: () => currentToken() ?? undefined });
+
+// Что делать, когда сервер ответил 401 «войдите заново» (токен истёк или
+// пользователь вышел на другом устройстве). Задаёт router.tsx: забыть токен
+// и открыть экран входа.
+let onUnauthorized = () => {};
+export function setOnUnauthorized(fn: () => void) {
+  onUnauthorized = fn;
+}
+
+client.interceptors.response.use((response, request) => {
+  if (response.status === 401 && !request.url.includes("/api/auth/")) {
+    logout();
+    onUnauthorized();
+  }
+  return response;
+});
+
+// Вошли или зарегистрировались: запоминаем токен и выкидываем кэш
+// прошлого пользователя, чтобы не мелькнули чужие тренировки.
+function onSignedIn({ access_token }: { access_token: string }) {
+  setToken(access_token);
+  queryClient.clear();
+}
+
+export function useLogin() {
+  return useMutation({ ...loginMutation(), onSuccess: onSignedIn });
+}
+
+export function useRegister() {
+  return useMutation({ ...registerMutation(), onSuccess: onSignedIn });
+}
+
+export function logout() {
+  clearToken();
+  queryClient.clear();
+}
+
+export function isSignedIn() {
+  return currentToken() !== null;
+}
+
+// Текст ошибки от сервера ("Неверная почта или пароль") для показа под формой
+export function errorText(error: unknown): string {
+  const detail = (error as { detail?: unknown } | null)?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    // 422: сервер перечислил, какое поле не прошло проверку
+    const field = String(detail[0]?.loc?.at(-1) ?? "");
+    if (field === "email") return "Похоже, в почте опечатка";
+    if (field === "password") return "Пароль должен быть не короче 8 символов";
+    return "Проверь поля формы";
+  }
+  return "Нет связи с сервером";
+}
 
 // ---------- Каталог ----------
 

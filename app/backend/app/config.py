@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./fitness.db"
     # С каких адресов браузеру разрешено обращаться к API (фронтенд на Vite)
     cors_origins: list[str] = ["http://localhost:5173"]
+    # Секрет, которым сервер подписывает токены входа. Для разработки годится
+    # значение по умолчанию, на настоящем сервере обязательно своё в .env:
+    #   uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
+    jwt_secret: str = "dev-secret-change-me-in-env-file-please"
+    # Сколько дней токен действует, потом придётся войти заново
+    token_days: int = 30
 
 
 settings = Settings()

@@ -1,12 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import { isSignedIn } from "../api";
 
 // Заставка: белый череп заливается красным снизу вверх, потом переход дальше.
 // Тап по экрану пропускает заставку.
 export function Splash() {
   const navigate = useNavigate();
-  // Если аватар ещё не выбран, главная сама отправит на его выбор (см. router.tsx)
-  const next = () => navigate({ to: "/home", replace: true });
+  // Не вошёл: на экран входа. Если аватар ещё не выбран, главная сама
+  // отправит на его выбор (см. router.tsx)
+  const next = () => navigate({ to: isSignedIn() ? "/home" : "/login", replace: true });
 
   return (
     <button type="button" onClick={next} className="relative h-full w-full overflow-hidden">

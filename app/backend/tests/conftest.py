@@ -2,6 +2,8 @@
 
 Каждый тест получает чистую базу в памяти (не трогает fitness.db)
 и клиент, который ходит в API без запуска настоящего сервера.
+
+client — уже вошедший пользователь (с токеном), anon — без входа.
 """
 
 import pytest
@@ -28,7 +30,20 @@ def session():
 
 
 @pytest.fixture
-def client(session: Session):
+def anon(session: Session):
     app.dependency_overrides[get_session] = lambda: session
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+def login(client: TestClient, email: str, password: str = "secret123") -> TestClient:
+    """Регистрирует пользователя и кладёт его токен в заголовки клиента."""
+    r = client.post("/api/auth/register", json={"email": email, "password": password})
+    assert r.status_code == 201, r.text
+    client.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
+    return client
+
+
+@pytest.fixture
+def client(anon: TestClient):
+    return login(anon, "athlete@example.com")

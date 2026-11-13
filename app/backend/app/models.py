@@ -26,10 +26,22 @@ class MuscleRole(StrEnum):
     secondary = "secondary"  # помогает
 
 
+def _now() -> dt.datetime:
+    return dt.datetime.now(dt.UTC)
+
+
 class User(SQLModel, table=True):
+    """Аккаунт. Пароль хранится только в виде хеша (необратимого «отпечатка»).
+
+    У старого пользователя по умолчанию (до этапа 6) почты нет: войти в него нельзя.
+    """
+
     id: int | None = Field(default=None, primary_key=True)
     name: str = "athlete"
     avatar: Avatar | None = None
+    email: str | None = Field(default=None, unique=True, index=True)
+    password_hash: str | None = None
+    created_at: dt.datetime | None = Field(default_factory=_now)
 
 
 class MuscleGroup(SQLModel, table=True):
@@ -61,10 +73,6 @@ class WorkoutDay(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     date: dt.date = Field(index=True)
-
-
-def _now() -> dt.datetime:
-    return dt.datetime.now(dt.UTC)
 
 
 class DayExercise(SQLModel, table=True):
